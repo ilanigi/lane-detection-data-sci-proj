@@ -8,3 +8,11 @@ https://paperswithcode.com/task/lane-detection - a site with a lot of datasets f
 https://xingangpan.github.io/projects/CULane.html - an article providing a good dataset and tools to use it.
 
 https://drive.google.com/drive/folders/1mSLgwVTiaUMAb4AVOWwlCD5JcWdrwpvu - the drive of this dataset
+
+https://medium.com/analytics-vidhya/building-a-lane-detection-system-f7a727c6694 - אלגורתמי מדף שאפשר להשתמש בהם:
+
+https://github.com/TuSimple/tusimple-benchmark/issues/3 tusimple github
+
+
+file:///C:/Users/Gilad/Desktop/Irjet-v2i3270.pdf - עוד לא קראתי
+
