@@ -1,1 +1,6 @@
 Here we can add all things data we want to transfer between us.
+
+
+https://journals.sagepub.com/doi/full/10.1177/17298814211008752 - a good article about lane detection issues, it can help us choose a specific problem.
+
+https://xingangpan.github.io/projects/CULane.html - an article providing a good dataset and tools to use it.
