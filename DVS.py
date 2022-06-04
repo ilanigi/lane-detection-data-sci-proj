@@ -16,12 +16,8 @@ for i in range(hight):
         else:
             img1[i,j] = 0
 
-for i in range(hight):
-    for j in range(width):
-        if i < 225 :
-            img1[i,j] = 0
 
-
+img1 = img1[240:,0:650]
 
 cv2.imshow('1', img1)
 
