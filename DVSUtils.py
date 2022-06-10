@@ -1,38 +1,37 @@
 import numpy as np
 
 
-def deleteNoiseByNeighbors(img, Neighbor = [-1,0,1], minNeighborAmount = 3):
-    
-    hight, width  = img.shape
-    outImg = np.zeros((hight, width))
-    for i in range(hight):
+def delete_noise_by_neighbors(img, neighbor=[-1, 0, 1], min_neighbors_amount=3):
+    height, width = img.shape
+    out_img = np.zeros((height, width))
+    for i in range(height):
         for j in range(width):
-            if img[i,j] == 0:
+            if img[i, j] == 0:
                 continue
             counter = 0
-            for k in Neighbor:
-                for l in Neighbor:
+            for k in neighbor:
+                for l in neighbor:
                     try:
-                        if img[i+k,j+l] == 255:
-                            counter+=1
+                        if img[i + k, j + l] == 255:
+                            counter += 1
                     except:
                         pass
-            # -1 ==> don't count a pixel as it self's neighbor!
-            if counter -1 > minNeighborAmount:
-                outImg[i,j] = 1
+            # -1 ==> don't count a pixel as its own neighbor!
+            if counter - 1 > min_neighbors_amount:
+                out_img[i, j] = 255
 
-    return outImg
+    return out_img
 
 
-def deleteNoneBinaryPixels(img):
-    half = 255/2
-    hight, width = img.shape
-    
-    for i in range(hight):
+def delete_none_binary_pixels(img):
+    threshold = 240
+    height, width = img.shape
+
+    for i in range(height):
         for j in range(width):
-            if img[i,j] > half:
-                img[i,j] = 255
+            if img[i, j] > threshold:
+                img[i, j] = 255
             else:
-                img[i,j] = 0
+                img[i, j] = 0
 
     return img

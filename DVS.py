@@ -3,17 +3,16 @@ import cv2
 # from cv2 import line
 import numpy as np
 
-from DVSUtils import deleteNoiseByNeighbors, deleteNoneBinaryPixels
+from DVSUtils import delete_noise_by_neighbors, delete_none_binary_pixels
 # import math
-
 
 img1 = cv2.imread('10.jpg')
 img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
 
-hight, width  = img1.shape
+height, width = img1.shape
 
-img1 = deleteNoneBinaryPixels(img1)
-img1 = deleteNoiseByNeighbors(img1,minNeighborAmount=2)
+img1 = delete_none_binary_pixels(img1)
+img1 = delete_noise_by_neighbors(img1, min_neighbors_amount=2)
 
 
 # img1 = cv2.GaussianBlur(img1,(7,7),21)
