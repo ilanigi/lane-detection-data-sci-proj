@@ -1,5 +1,4 @@
-Here we can add all things data we want to transfer between us.
-
+Here we can add all data we want to transfer between us.
 
 https://journals.sagepub.com/doi/full/10.1177/17298814211008752 - a good article about lane detection issues, it can help us choose a specific problem.
 
@@ -16,3 +15,5 @@ https://github.com/TuSimple/tusimple-benchmark/issues/3 tusimple github
 https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwjNs9um-IH4AhVdi_0HHRrUBegQFnoECAcQAQ&url=https%3A%2F%2Fwww.irjet.net%2Farchives%2FV2%2Fi3%2FIrjet-v2i3270.pdf&usg=AOvVaw1al4IUziLEQilamVD5Qv47 - עוד לא קראתי
 
 https://towardsdatascience.com/tutorial-build-a-lane-detector-679fd8953132#35b6
+
+https://spritea.github.io/DET/ // our chosen data set

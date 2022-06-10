@@ -35,3 +35,5 @@ def delete_none_binary_pixels(img):
                 img[i, j] = 0
 
     return img
+
+def
