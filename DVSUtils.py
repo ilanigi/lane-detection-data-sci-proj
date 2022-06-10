@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def delete_noise_by_neighbors(img, neighbor=[-1, 0, 1], min_neighbors_amount=3):
     height, width = img.shape
     out_img = np.zeros((height, width))
@@ -36,4 +35,26 @@ def delete_none_binary_pixels(img):
 
     return img
 
-def
+
+def set_triangle_scope(img):
+    height, width = img.shape
+    for i in range(height):
+        for j in range(width):
+            if get_y_on_right_line(j) > i or get_y_on_left_line(j) > i:
+                img[i, j] = 0
+    return img
+
+
+def get_y_on_right_line(x, base_height=400, middle_point=(660, 230)):
+    x_middle_point, y_middle_point = middle_point
+    m = base_height / x_middle_point
+    b = y_middle_point - m * x_middle_point
+    return m * x + b
+
+
+def get_y_on_left_line(x, base_height=400, middle_point=(660, 230)):
+    x_middle_point, y_middle_point = middle_point
+    m = - base_height / x_middle_point
+    b = y_middle_point - m * x_middle_point
+    return m * x + b
+
