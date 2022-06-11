@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def delete_noise_by_neighbors(img, neighbor=[-1, 0, 1], min_neighbors_amount=3):
     height, width = img.shape
     out_img = np.zeros((height, width))
@@ -36,25 +37,22 @@ def delete_none_binary_pixels(img):
     return img
 
 
-def set_triangle_scope(img):
+def linear_equation(base_point, mid_point):
+    base_x, base_y = base_point
+    x_middle_point, y_middle_point, = mid_point
+    m = (y_middle_point - base_y) / (x_middle_point - base_x)
+    n = - (m * x_middle_point - y_middle_point)
+    return lambda x: m*x + n
+
+
+def set_triangle_scope(img, mid_point=(640, 200), base_height=650):
     height, width = img.shape
+    left_linear_equation = linear_equation((0, base_height), mid_point)
+    right_linear_equation = linear_equation((width, base_height), mid_point)
     for i in range(height):
         for j in range(width):
-            if get_y_on_right_line(j) > i or get_y_on_left_line(j) > i:
+            if left_linear_equation(j) > i or right_linear_equation(j) > i:
                 img[i, j] = 0
     return img
 
-
-def get_y_on_right_line(x, base_height=400, middle_point=(660, 230)):
-    x_middle_point, y_middle_point = middle_point
-    m = base_height / x_middle_point
-    b = y_middle_point - m * x_middle_point
-    return m * x + b
-
-
-def get_y_on_left_line(x, base_height=400, middle_point=(660, 230)):
-    x_middle_point, y_middle_point = middle_point
-    m = - base_height / x_middle_point
-    b = y_middle_point - m * x_middle_point
-    return m * x + b
 
