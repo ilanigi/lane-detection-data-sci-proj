@@ -3,14 +3,7 @@ from matplotlib import pyplot as plt
 
 
 def plot_by_points(img):
-    points = []
-    height, width = img.shape
-    for i in range(height):
-        for j in range(width):
-            if img[i, j] == 0:
-                continue
-            else:
-                points.append((height - i, j))
+    points = get_data_from_image(img)
     y, x = zip(*points)
     plt.scatter(x, y, s=0.5, c='k')
     plt.show()
@@ -77,13 +70,13 @@ def delete_right_half(img):
 
 
 def get_data_from_image(img):
-    x_data = []
-    y_data = []
+    points = []
     height, width = img.shape
     for i in range(height):
         for j in range(width):
-            if img[i, j] != 0:
-                x_data.append(i)
-                y_data.append(j)
+            if img[i, j] == 0:
+                continue
+            else:
+                points.append((height - i, j))
 
-    return x_data, y_data
+    return points
