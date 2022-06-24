@@ -1,4 +1,5 @@
 import numpy as np
+import cv2
 from matplotlib import pyplot as plt
 
 
@@ -7,6 +8,31 @@ def plot_by_points(img):
     y, x = zip(*points)
     plt.scatter(x, y, s=0.5, c='k')
     plt.show()
+
+
+def hough_line_transform(img):
+    img = delete_none_binary_pixels(img)
+    img = delete_noise_by_neighbors(img, min_neighbors_amount=2)
+    img = cv2.GaussianBlur(img, (5, 5), cv2.BORDER_DEFAULT)
+    img_unit8 = np.uint8(img)
+    edges = cv2.Canny(img_unit8, 50, 150, apertureSize=3)
+
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
+    for rho, theta in lines[0]:
+        a = np.cos(theta)
+        b = np.sin(theta)
+        x0 = a * rho
+        y0 = b * rho
+        x1 = int(x0 + 1000 * (-b))
+        y1 = int(y0 + 1000 * (a))
+        x2 = int(x0 - 1000 * (-b))
+        y2 = int(y0 - 1000 * (a))
+
+        cv2.line(img, (x1, y1), (x2, y2), (255, 50, 20), 2)
+
+        cv2.imshow('1', img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 
 def delete_noise_by_neighbors(img, neighbor=[-1, 0, 1], min_neighbors_amount=3):
