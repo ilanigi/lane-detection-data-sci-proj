@@ -15,7 +15,7 @@ def plot_by_points(img):
 
 def hough_line_transform(img):
     img = delete_none_binary_pixels(img)
-    img, counter = delete_noise_by_neighbors(img, min_neighbors_amount=2)
+    img = delete_noise_by_neighbors(img, min_neighbors_amount=2)
 
     img_unit8 = np.uint8(img)
     tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 180)
@@ -55,14 +55,12 @@ def hough_line_transform(img):
 
 def delete_noise_by_neighbors(img, neighbor=[-1, 0, 1], min_neighbors_amount=3):
     height, width = img.shape
-    total_counter = 0
     out_img = np.zeros((height, width))
     for i in range(height):
         for j in range(width):
             if img[i, j] == 0:
                 continue
             counter = 0
-            total_counter += 1
             for k in neighbor:
                 for l in neighbor:
                     try:
@@ -74,7 +72,7 @@ def delete_noise_by_neighbors(img, neighbor=[-1, 0, 1], min_neighbors_amount=3):
             if counter - 1 > min_neighbors_amount:
                 out_img[i, j] = 255
 
-    return out_img, total_counter
+    return out_img
 
 
 def delete_none_binary_pixels(img):
