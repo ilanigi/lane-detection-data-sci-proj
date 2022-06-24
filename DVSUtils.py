@@ -19,20 +19,18 @@ def hough_line_transform(img):
 
     img_unit8 = np.uint8(img)
     tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 180)
-    hspace, theta, dist = hough_line(img_unit8, tested_angles)
+    h_space, theta, dist = hough_line(img_unit8, tested_angles)
     angle_list = []
     fig, axes = plt.subplots(1, 1)
 
-
-
-    axes.imshow(np.log(1 + hspace), aspect=0.05)
+    axes.imshow(np.log(1 + h_space), aspect=0.05)
     plt.show()
     fig, axes = plt.subplots(1, 1)
     axes.imshow(img, cmap='gray')
 
     origin = np.array((0, img.shape[1]))
-    min_angels = [(9999,0), (-9999,0)]
-    for _, angle, dist in zip(*hough_line_peaks(hspace, theta, dist)):
+    min_angels = [(9999, 0), (-9999, 0)]
+    for _, angle, dist in zip(*hough_line_peaks(h_space, theta, dist)):
         if abs(angle) < 0.1:
             continue
 
@@ -53,7 +51,7 @@ def hough_line_transform(img):
     plt.show()
 
 
-def delete_noise_by_neighbors(img, neighbor=[-1, 0, 1], min_neighbors_amount=3):
+def delete_noise_by_neighbors(img, kernel=[-1, 0, 1], min_neighbors_amount=3):
     height, width = img.shape
     out_img = np.zeros((height, width))
     for i in range(height):
@@ -61,12 +59,13 @@ def delete_noise_by_neighbors(img, neighbor=[-1, 0, 1], min_neighbors_amount=3):
             if img[i, j] == 0:
                 continue
             counter = 0
-            for k in neighbor:
-                for l in neighbor:
+            for k in kernel:
+                for m in kernel:
                     try:
-                        if img[i + k, j + l] == 255:
+                        if img[i + k, j + m] == 255:
                             counter += 1
                     except IndexError:
+                        # kernel out of picture bound
                         pass
             # -1 ==> don't count a pixel as its own neighbor!
             if counter - 1 > min_neighbors_amount:
