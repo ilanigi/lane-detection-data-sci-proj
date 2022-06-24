@@ -1,4 +1,19 @@
 import numpy as np
+from matplotlib import pyplot as plt
+
+
+def plot_by_points(img):
+    points = []
+    height, width = img.shape
+    for i in range(height):
+        for j in range(width):
+            if img[i, j] == 0:
+                continue
+            else:
+                points.append((height - i, j))
+    y, x = zip(*points)
+    plt.scatter(x, y, s=0.5, c='k')
+    plt.show()
 
 
 def delete_noise_by_neighbors(img, neighbor=[-1, 0, 1], min_neighbors_amount=3):
@@ -42,7 +57,7 @@ def linear_equation(base_point, mid_point):
     x_middle_point, y_middle_point, = mid_point
     m = (y_middle_point - base_y) / (x_middle_point - base_x)
     n = - (m * x_middle_point - y_middle_point)
-    return lambda x: m*x + n
+    return lambda x: m * x + n
 
 
 def set_triangle_scope(img, mid_point=(640, 200), base_height=650):
@@ -56,3 +71,19 @@ def set_triangle_scope(img, mid_point=(640, 200), base_height=650):
     return img
 
 
+def delete_right_half(img):
+    height, width = img.shape
+    return img[:, :int(width / 2)]
+
+
+def get_data_from_image(img):
+    x_data = []
+    y_data = []
+    height, width = img.shape
+    for i in range(height):
+        for j in range(width):
+            if img[i, j] != 0:
+                x_data.append(i)
+                y_data.append(j)
+
+    return x_data, y_data
