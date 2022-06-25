@@ -1,17 +1,9 @@
 import numpy as np
-from skimage.transform import hough_line, hough_line_peaks, hough_circle, hough_circle_peaks
 from matplotlib import pyplot as plt
 from skimage.transform._hough_transform import circle_perimeter
+from skimage.transform import hough_line, hough_line_peaks, hough_circle, hough_circle_peaks
 
-
-def plot_by_points(img):
-    img = delete_none_binary_pixels(img)
-    img = delete_noise_by_neighbors(img, min_neighbors_amount=2)
-    img = delete_noise_by_neighbors(img, min_neighbors_amount=1)
-    points = get_data_from_image(img)
-    y, x = zip(*points)
-    plt.scatter(x, y, s=0.5, c='k')
-    plt.show()
+from utils.Preprocess import delete_noise_by_neighbors, delete_none_binary_pixels
 
 
 def all_hough_circle_transform(img):
@@ -63,6 +55,7 @@ def all_hough_lines_transform(img):
 
     plt.show()
 
+
 def hough_line_transform(img):
     img = delete_none_binary_pixels(img)
     img = delete_noise_by_neighbors(img, min_neighbors_amount=2)
@@ -99,77 +92,3 @@ def hough_line_transform(img):
     axes.set_title('Min detected lines')
 
     plt.show()
-
-
-def delete_noise_by_neighbors(img, kernel=[-1, 0, 1], min_neighbors_amount=3):
-    height, width = img.shape
-    out_img = np.zeros((height, width))
-    for i in range(height):
-        for j in range(width):
-            if img[i, j] == 0:
-                continue
-            counter = 0
-            for k in kernel:
-                for m in kernel:
-                    try:
-                        if img[i + k, j + m] == 255:
-                            counter += 1
-                    except IndexError:
-                        # kernel out of picture bound
-                        pass
-            # -1 ==> don't count a pixel as its own neighbor!
-            if counter - 1 > min_neighbors_amount:
-                out_img[i, j] = 255
-
-    return out_img
-
-
-def delete_none_binary_pixels(img):
-    threshold = 240
-    height, width = img.shape
-
-    for i in range(height):
-        for j in range(width):
-            if img[i, j] > threshold:
-                img[i, j] = 255
-            else:
-                img[i, j] = 0
-
-    return img
-
-
-def linear_equation(base_point, mid_point):
-    base_x, base_y = base_point
-    x_middle_point, y_middle_point, = mid_point
-    m = (y_middle_point - base_y) / (x_middle_point - base_x)
-    n = - (m * x_middle_point - y_middle_point)
-    return lambda x: m * x + n
-
-
-def set_triangle_scope(img, mid_point=(640, 200), base_height=650):
-    height, width = img.shape
-    left_linear_equation = linear_equation((0, base_height), mid_point)
-    right_linear_equation = linear_equation((width, base_height), mid_point)
-    for i in range(height):
-        for j in range(width):
-            if left_linear_equation(j) > i or right_linear_equation(j) > i:
-                img[i, j] = 0
-    return img
-
-
-def delete_right_half(img):
-    height, width = img.shape
-    return img[:, :int(width / 2)]
-
-
-def get_data_from_image(img):
-    points = []
-    height, width = img.shape
-    for i in range(height):
-        for j in range(width):
-            if img[i, j] == 0:
-                continue
-            else:
-                points.append((height - i, j))
-
-    return points
