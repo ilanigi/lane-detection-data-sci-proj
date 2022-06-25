@@ -48,6 +48,7 @@ def delete_none_binary_pixels(img):
 
     return img
 
+
 def get_data_from_image(img):
     points = []
     height, width = img.shape

@@ -17,6 +17,6 @@ def set_triangle_scope(img, mid_point=(640, 200), base_height=650):
     return img
 
 
-def delete_right_half(img):
+def get_bottom_right_corner(img):
     height, width = img.shape
-    return img[:, :int(width / 2)]
+    return img[int(height / 2) - 50:, int(width / 2): ]
