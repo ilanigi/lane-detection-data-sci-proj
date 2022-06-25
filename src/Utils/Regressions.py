@@ -3,13 +3,34 @@ from matplotlib import pyplot as plt
 
 from sklearn import linear_model
 
+from src.Utils.Crop import crop_rectangle
+from src.Utils.Plot import show_image, plot_data
 from src.Utils.Preprocess import image_to_data
 
 
-def RANSAC(img):
-    points = image_to_data(img)
-    X, y = zip(*points)
+def get_point_from_RANSAC(img, current_rectangle):
+    upper_left, bottom_right = current_rectangle
+    x_left, y_left = upper_left
 
+    cropped_img = crop_rectangle(img, current_rectangle)
+    height, width = cropped_img.shape
+    # show_image(cropped_img)
+    m, local_x, local_y = RANSAC(cropped_img)
+    local_y = height - local_y
+    global_x = x_left + local_x
+    global_y = y_left + local_y
+    n = global_y - m * global_x
+    new_x = (y_left - n) / m
+
+    return int(new_x), y_left
+
+
+def RANSAC(img):
+    plot_RANSAC(img)
+
+    points = image_to_data(img)
+    plot_data(points)
+    X, y = zip(*points)
     y = np.asarray(y)
     X = np.array([[point] for point in X])
 
@@ -18,22 +39,32 @@ def RANSAC(img):
 
     line_X = np.arange(X.min(), X.max())[:, np.newaxis]
     line_y_ransac = ransac.predict(line_X)
-    print(line_y_ransac)
+    max_y = np.asscalar(max(line_y_ransac))
+    max_index = int(np.where(line_y_ransac == max_y))
+    max_x = np.asscalar(line_X[max_index])
+    min_index = 0
+
+    if max_index == 0:
+        min_index = -1
+
+    min_x = np.asscalar(line_X[min_index])
+    min_y = np.asscalar(line_y_ransac[min_index])
+    m = (min_y - max_y) / (min_x - max_x)
+
+    return m, max_x, max_y
 
 
 def plot_RANSAC(img):
     points = image_to_data(img)
-    X, y = zip(*points)
+    y, X = zip(*points)
     y = np.asarray(y)
     X = np.array([[point] for point in X])
 
-    # Robustly fit linear model with RANSAC algorithm
     ransac = linear_model.RANSACRegressor()
     ransac.fit(X, y)
     inliner_mask = ransac.inlier_mask_
     outliner_mask = np.logical_not(inliner_mask)
 
-    # Predict data of estimated models
     line_X = np.arange(X.min(), X.max())[:, np.newaxis]
     line_y_ransac = ransac.predict(line_X)
 

@@ -1,12 +1,5 @@
 import numpy as np
 from cv2.cv2 import imread, cvtColor, COLOR_BGR2GRAY
-from matplotlib import pyplot as plt
-
-
-def plot_data(points):
-    y, x = zip(*points)
-    plt.scatter(x, y, s=0.5, c='k')
-    plt.show()
 
 
 def general(image_name, min_neighbors_amount_list = [2, 1]):
