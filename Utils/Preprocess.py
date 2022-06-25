@@ -1,15 +1,22 @@
 import numpy as np
+from cv2.cv2 import imread, cvtColor, COLOR_BGR2GRAY
 from matplotlib import pyplot as plt
 
 
 def plot_by_points(img):
-    img = delete_none_binary_pixels(img)
-    img = delete_noise_by_neighbors(img, min_neighbors_amount=2)
-    img = delete_noise_by_neighbors(img, min_neighbors_amount=1)
     points = get_data_from_image(img)
     y, x = zip(*points)
     plt.scatter(x, y, s=0.5, c='k')
     plt.show()
+
+
+def general(image_name, min_neighbors_amount_list = [2, 1]):
+    img = imread(image_name)
+    img = cvtColor(img, COLOR_BGR2GRAY)
+    img = delete_none_binary_pixels(img)
+    for min_neighbor in min_neighbors_amount_list:
+        img = delete_noise_by_neighbors(img, min_neighbors_amount=min_neighbor)
+    return img
 
 
 def delete_noise_by_neighbors(img, kernel=[-1, 0, 1], min_neighbors_amount=3):
