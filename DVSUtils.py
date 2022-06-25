@@ -36,11 +36,6 @@ def all_hough_circle_transform(img):
     plt.show()
 
 
-
-
-
-
-
 def all_hough_lines_transform(img):
     img = delete_none_binary_pixels(img)
     img = delete_noise_by_neighbors(img, min_neighbors_amount=2)
