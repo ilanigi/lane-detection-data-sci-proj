@@ -1,5 +1,6 @@
 import cv2
-from utils.Preprocess import all_hough_circle_transform
+
+from Utils.Hough import all_hough_circle_transform
 
 img1 = cv2.imread('142.jpg')
 img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
