@@ -1,9 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from sklearn import linear_model, datasets
+from sklearn import linear_model
 
-from Utils.Preprocess import image_to_data, plot_data, general
+from src.Utils.Preprocess import image_to_data
 
 
 def RANSAC(img):

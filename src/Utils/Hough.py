@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from skimage.transform._hough_transform import circle_perimeter
 from skimage.transform import hough_line, hough_line_peaks, hough_circle, hough_circle_peaks
 
-from Utils.Preprocess import delete_noise_by_neighbors, delete_none_binary_pixels
+from src.Utils.Preprocess import delete_noise_by_neighbors, delete_none_binary_pixels
 
 
 def all_hough_circle_transform(img):
