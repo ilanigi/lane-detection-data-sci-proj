@@ -3,8 +3,7 @@ from cv2.cv2 import imread, cvtColor, COLOR_BGR2GRAY
 from matplotlib import pyplot as plt
 
 
-def plot_by_points(img):
-    points = get_data_from_image(img)
+def plot_data(points):
     y, x = zip(*points)
     plt.scatter(x, y, s=0.5, c='k')
     plt.show()
@@ -56,7 +55,7 @@ def delete_none_binary_pixels(img):
     return img
 
 
-def get_data_from_image(img):
+def image_to_data(img):
     points = []
     height, width = img.shape
     for i in range(height):
