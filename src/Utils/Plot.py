@@ -1,11 +1,15 @@
+import numpy as np
 from cv2.cv2 import imshow, waitKey, destroyAllWindows
 from matplotlib import pyplot as plt
 
 
-
-def get_rectangle_from_mid_bottom(mid_bottom_point, length, height):
+def get_rectangle_from_mid_bottom(mid_bottom_point, length, height, img_width):
     x, y = mid_bottom_point
-    return (x - int(length / 2), y - height), (x + int(length / 2), y)
+    if 2*x < length:
+        x = length/2
+    elif 2*x + length > 2*img_width:
+        x = img_width-length/2
+    return (int(x - length / 2), int(y - height)), (int(x + length / 2), y)
 
 
 def draw_rectangle(img, rectangle):
@@ -39,6 +43,10 @@ def show_image(img, img_name='img'):
 
 
 def plot_data(points):
-    y, x = zip(*points)
+    x, y = zip(*points)
     plt.scatter(x, y, s=0.5, c='k')
+
+    ax = plt.gca()  # get the axis
+    ax.set_ylim(ax.get_ylim()[::-1])
+    ax.xaxis.tick_top()  # and move the X-Axis
     plt.show()

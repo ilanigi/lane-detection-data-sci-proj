@@ -56,6 +56,6 @@ def image_to_data(img):
             if img[i, j] == 0:
                 continue
             else:
-                points.append((height - i, j))
+                points.append((j, i))
 
     return points

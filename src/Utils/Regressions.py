@@ -16,7 +16,7 @@ def get_point_from_RANSAC(img, current_rectangle):
     height, width = cropped_img.shape
     # show_image(cropped_img)
     m, local_x, local_y = RANSAC(cropped_img)
-    local_y = height - local_y
+
     global_x = x_left + local_x
     global_y = y_left + local_y
     n = global_y - m * global_x
@@ -30,28 +30,24 @@ def RANSAC(img):
 
     points = image_to_data(img)
     plot_data(points)
-    X, y = zip(*points)
+    x, y = zip(*points)
     y = np.asarray(y)
-    X = np.array([[point] for point in X])
+    x = np.array(x)[:, np.newaxis]
 
     ransac = linear_model.RANSACRegressor()
-    ransac.fit(X, y)
+    ransac.fit(x, y)
 
-    line_X = np.arange(X.min(), X.max())[:, np.newaxis]
-    line_y_ransac = ransac.predict(line_X)
-    max_y = np.asscalar(max(line_y_ransac))
-    max_index = int(np.where(line_y_ransac == max_y))
-    max_x = np.asscalar(line_X[max_index])
-    min_index = 0
+    line_x = np.arange(x.min(), x.max())[:, np.newaxis]
+    line_y = ransac.predict(line_x)
+    y_0 = line_y[0]
+    y_1 = line_y[1]
 
-    if max_index == 0:
-        min_index = -1
+    x_0 = np.asscalar(line_x[0])
+    x_1 = np.asscalar(line_x[1])
 
-    min_x = np.asscalar(line_X[min_index])
-    min_y = np.asscalar(line_y_ransac[min_index])
-    m = (min_y - max_y) / (min_x - max_x)
+    m = (y_1 - y_0) / (x_1 - x_0)
 
-    return m, max_x, max_y
+    return m, x_0, y_0
 
 
 def plot_RANSAC(img):
@@ -68,7 +64,6 @@ def plot_RANSAC(img):
     line_X = np.arange(X.min(), X.max())[:, np.newaxis]
     line_y_ransac = ransac.predict(line_X)
 
-    lw = 2
     plt.scatter(
         X[inliner_mask], y[inliner_mask], color="yellowgreen", marker=".", label="Inliers"
     )
@@ -79,10 +74,14 @@ def plot_RANSAC(img):
         line_X,
         line_y_ransac,
         color="cornflowerblue",
-        linewidth=lw,
+        linewidth=2,
         label="RANSAC regressor",
     )
+
     plt.legend(loc="lower right")
     plt.xlabel("Input")
     plt.ylabel("Response")
+    ax = plt.gca()
+    ax.set_ylim(ax.get_ylim()[::-1])
+    ax.xaxis.tick_top()
     plt.show()
