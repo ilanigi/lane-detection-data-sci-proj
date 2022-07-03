@@ -8,7 +8,7 @@ def get_rectangle_from_mid_bottom(mid_bottom_point, length, height, img_width):
     if 2*x < length:
         x = length/2
     elif 2*x + length > 2*img_width:
-        x = img_width-length/2
+        x = img_width - length/2 - 1
     return (int(x - length / 2), int(y - height)), (int(x + length / 2), y)
 
 

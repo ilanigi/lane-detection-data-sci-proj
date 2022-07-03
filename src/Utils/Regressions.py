@@ -26,10 +26,10 @@ def get_point_from_RANSAC(img, current_rectangle):
 
 
 def RANSAC(img):
-    plot_RANSAC(img)
+    # plot_RANSAC(img)
 
     points = image_to_data(img)
-    plot_data(points)
+    # plot_data(points)
     x, y = zip(*points)
     y = np.asarray(y)
     x = np.array(x)[:, np.newaxis]
