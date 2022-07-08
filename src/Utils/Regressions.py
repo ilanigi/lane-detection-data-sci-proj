@@ -5,35 +5,21 @@ from sklearn import linear_model
 
 from src.Utils.Crop import crop_rectangle
 from src.Utils.Plot import get_rectangle_from_mid_bottom, draw_rectangle, show_image, draw_parallelogram
-from src.Utils.Preprocess import general, get_data_from_parallelogram
+from src.Utils.Preprocess import general, get_data_from_parallelogram, set_linear_equation, set_linear_equation_by_y
 
 
-def get_par_from_mid_point(m, x_on_reg_line, y_on_reg_line, par_width, par_height, old_x, direction='left'):
-    n = y_on_reg_line - m * x_on_reg_line
+def get_par_from_mid_point(RANSAC_line_by_x, old_y_up, par_width, par_height):
+    mid_btm_x = RANSAC_line_by_x(old_y_up)
 
-    def y(x): return m * x + n
+    new_y_up = old_y_up - par_height
 
-    y_mid_point = y(old_x)
-    if direction is 'left':
-        new_x_left = old_x
-        y_up_left = y_mid_point - 0.5 * par_height
-        new_x_right = new_x_left + par_width
-        y_btm_right = y(new_x_right) + 0.5 * par_height
-
-        upper_left = int(new_x_left), int(y_up_left)
-        bottom_right = int(new_x_right), int(y_btm_right)
-        return upper_left,bottom_right
-    else:
-        new_x_right = old_x
-        new_x_left = new_x_right - par_width
-        y_btm_right = y_mid_point + 0.5 * par_height
-        y_up_left = y(new_x_left) - 0.5 * par_height
-
-        upper_left = int(new_x_left), int(y_up_left)
-        bottom_right = int(new_x_right), int(y_btm_right)
-        return upper_left, bottom_right
+    mid_up_x = RANSAC_line_by_x(new_y_up)
+    new_bottom_right = int(mid_btm_x + 0.5 * par_width), old_y_up
+    new_upper_left = int(mid_up_x - 0.5 * par_width), new_y_up
+    return new_upper_left, new_bottom_right
 
 
+# deprecated
 def par_regression_loop(img_path = 'images/10.jpg', par_height = 120, par_width = 120, par_amount=3):
     img = general(img_path)
 
@@ -60,7 +46,7 @@ def par_regression_loop(img_path = 'images/10.jpg', par_height = 120, par_width 
         x_left, y_up_left = upper_left
 
         points = get_data_from_parallelogram(img, (upper_left, bottom_right, par_height))
-        m, x_on_reg_line, y_on_reg_line = RANSAC(points)
+        m, x_on_reg_line, y_on_reg_line = line_from_RANSAC(points)
         upper_left, bottom_right = get_par_from_mid_point(m, x_on_reg_line,y_on_reg_line,par_width,par_height, x_left)
         right_pars.append((upper_left, bottom_right, par_height))
 
@@ -68,7 +54,7 @@ def par_regression_loop(img_path = 'images/10.jpg', par_height = 120, par_width 
         x_left, y_up_left = upper_left
 
         points = get_data_from_parallelogram(img, (upper_left, bottom_right, par_height))
-        m, x_on_reg_line, y_on_reg_line = RANSAC(points)
+        m, x_on_reg_line, y_on_reg_line = line_from_RANSAC(points)
         upper_left, bottom_right = get_par_from_mid_point(m, x_on_reg_line, y_on_reg_line, par_width, par_height,
                                                           x_left)
         left_pars.append((upper_left, bottom_right, par_height))
@@ -78,7 +64,7 @@ def par_regression_loop(img_path = 'images/10.jpg', par_height = 120, par_width 
         draw_parallelogram(img,par)
 
     for par in left_pars:
-        draw_parallelogram(img,par        )
+        draw_parallelogram(img,par)
 
 
 
@@ -115,13 +101,47 @@ def rac_regression_loop(img_path = 'images/10.jpg', rectangle_height = 150, rect
     show_image(img)
 
 
+def par_main_regression_loop(img_path = 'images/142.jpg'):
+    par_height = 280
+    par_width = 120
+    img = general(img_path, min_neighbors_amount_list=[1])
+
+    height, width = img.shape
+
+
+    y_up = height - par_height
+    y_btm = height - 1
+    x_btm_right = par_width
+    x_up_left = 180
+    upper_left = x_up_left, y_up
+    bottom_right = x_btm_right, y_btm
+
+    # # x_left = width - 200
+    # # y_up_left = height - 140 - length
+    # # x_right = width
+    # # y_btm_right = height
+    # upper_left = x_left, y_up_left
+    # bottom_right = x_right, y_btm_right
+
+    points = get_data_from_parallelogram(img, (upper_left, bottom_right, par_width))
+    x = line_from_RANSAC(points)
+    plot_data(points)
+    #
+    new_par_height = int(par_height / 4)
+    new_upper_left, new_bottom_right = get_par_from_mid_point(x, y_up, par_width, new_par_height)
+    #
+    draw_parallelogram(img, (new_upper_left, new_bottom_right, par_width))
+    draw_parallelogram(img, (upper_left, bottom_right, par_width))
+    show_image(img)
+
+
 def get_point_from_RANSAC(img, current_rectangle):
     upper_left, bottom_right = current_rectangle
     x_left, y_left = upper_left
 
     cropped_img = crop_rectangle(img, current_rectangle)
 
-    m, local_x, local_y = RANSAC(cropped_img)
+    m, local_x, local_y = line_from_RANSAC(cropped_img)
 
     global_x = x_left + local_x
     global_y = y_left + local_y
@@ -131,11 +151,9 @@ def get_point_from_RANSAC(img, current_rectangle):
     return int(new_x), y_left
 
 
-def RANSAC(points):
+def line_from_RANSAC(points):
     plot_RANSAC(points)
 
-    # points = image_to_data(img)
-    # plot_data(points)
     x, y = zip(*points)
     y = np.asarray(y)
     x = np.array(x)[:, np.newaxis]
@@ -151,9 +169,9 @@ def RANSAC(points):
     x_0 = np.asscalar(line_x[0])
     x_1 = np.asscalar(line_x[1])
 
-    m = (y_1 - y_0) / (x_1 - x_0)
+    x = set_linear_equation_by_y((x_1, y_1), (x_0, y_0))
 
-    return m, x_1, y_1
+    return x
 
 
 def plot_RANSAC(points):

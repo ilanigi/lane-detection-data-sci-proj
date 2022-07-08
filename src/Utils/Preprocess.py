@@ -69,25 +69,33 @@ def set_linear_equation(point_1, point_2):
     return lambda x: m * x + n
 
 
-def get_data_from_parallelogram(img, par):
-    upper_left, bottom_right, length = par
-    x_left, y_up_left = upper_left
-    x_right, y_btm_right = bottom_right
-    y_up_right = y_btm_right - length
-    y_btm_left = y_up_left + length
+def set_linear_equation_by_y(point_1, point_2):
+    x_1, y_1 = point_1
+    x_2, y_2 = point_2
+    m = (y_2 - y_1)/(x_2 - x_1)
+    n = y_1 - m*x_1
 
-    upper_line = set_linear_equation(upper_left, (x_right, y_up_right))
-    btm_line = set_linear_equation(bottom_right, (x_left, y_btm_left))
+    return lambda y: (y - n) / m
+
+
+def get_data_from_parallelogram(img, par):
+    upper_left, bottom_right, par_width = par
+    x_up_left, y_up = upper_left
+    x_btm_right, y_btm = bottom_right
+
+    x_up_right = x_up_left + par_width
+    x_btm_left = x_btm_right - par_width
+
+    left_line = set_linear_equation(upper_left, (x_btm_left, y_btm))
+    right_line = set_linear_equation(bottom_right, (x_up_right, y_up))
     points = []
 
-    height, width = img.shape
-
-    for y in range(min(y_up_right, y_up_left), max(y_btm_right, y_btm_left)):
-        for x in range(x_left, x_right):
+    for y in range(y_up, y_btm):
+        for x in range(min(x_btm_left,x_up_left),max(x_btm_right,x_up_right) ):
             if img[y, x] == 0:
                 continue
             else:
-                if upper_line(x) <= y <= btm_line(x):
+                if left_line(x) <= y <= right_line(x):
                     points.append((x, y))
 
     return points

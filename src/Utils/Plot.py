@@ -1,5 +1,4 @@
 import cv2.cv2
-import numpy as np
 from cv2.cv2 import imshow, waitKey, destroyAllWindows
 from matplotlib import pyplot as plt
 
@@ -15,25 +14,28 @@ def get_rectangle_from_mid_bottom(mid_bottom_point, length, height, img_width):
 
 def draw_parallelogram(img, par):
     height, width = img.shape
-    upper_left, bottom_right, length = par
-    x_left, y_up_left = upper_left
-    x_right, y_btm_right = bottom_right
-    y_up_right = y_btm_right - length
-    y_btm_left = y_up_left + length
+    upper_left, bottom_right, par_width = par
+    x_up_left, y_up = upper_left
+    x_btm_right, y_btm = bottom_right
 
-    for coordinate in [x_left, x_right, y_btm_left, y_up_right]:
+    x_up_right = x_up_left + par_width
+    x_btm_left = x_btm_right - par_width
+
+    for coordinate in [x_up_left, x_up_right, x_btm_right, x_btm_left]:
         if coordinate is width or coordinate < 0:
+            print ('coordinate is width:' + str(coordinate is width )+ ' width or coordinate < 0:' + str(width or coordinate < 0))
             raise Exception("parallelogram  out of bound")
 
-    for coordinate in [y_up_left, y_btm_right, y_btm_left, y_up_right]:
+    for coordinate in [y_up, y_btm]:
         if coordinate is height or coordinate < 0:
+            print('coordinate is height:' + str(coordinate is height)+'height or coordinate < 0:' + str(height or coordinate < 0))
             raise Exception("parallelogram out of bound")
 
-    cv2.line(img, upper_left, (x_left, y_btm_left), 255, 1)
-    cv2.line(img, upper_left, (x_right, y_up_right), 255, 1)
+    cv2.line(img, upper_left, (x_up_right, y_up), 255, 1)
+    cv2.line(img, upper_left, (x_btm_left, y_btm), 255, 1)
 
-    cv2.line(img, bottom_right, (x_left, y_btm_left), 255, 1)
-    cv2.line(img, bottom_right, (x_right, y_up_right), 255, 1)
+    cv2.line(img, bottom_right, (x_up_right, y_up), 255, 1)
+    cv2.line(img, bottom_right, (x_btm_left, y_btm), 255, 1)
 
 
 def draw_rectangle(img, rectangle):
