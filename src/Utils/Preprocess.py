@@ -59,3 +59,35 @@ def image_to_data(img):
                 points.append((j, i))
 
     return points
+
+
+def set_linear_equation(point_1, point_2):
+    x_1, y_1 = point_1
+    x_2, y_2 = point_2
+    m = (y_2 - y_1)/(x_2 - x_1)
+    n = y_1 - m*x_1
+    return lambda x: m * x + n
+
+
+def get_data_from_parallelogram(img, par):
+    upper_left, bottom_right, length = par
+    x_left, y_up_left = upper_left
+    x_right, y_btm_right = bottom_right
+    y_up_right = y_btm_right - length
+    y_btm_left = y_up_left + length
+
+    upper_line = set_linear_equation(upper_left, (x_right, y_up_right))
+    btm_line = set_linear_equation(bottom_right, (x_left, y_btm_left))
+    points = []
+
+    height, width = img.shape
+
+    for y in range(min(y_up_right, y_up_left), max(y_btm_right, y_btm_left)):
+        for x in range(x_left, x_right):
+            if img[y, x] == 0:
+                continue
+            else:
+                if upper_line(x) <= y <= btm_line(x):
+                    points.append((x, y))
+
+    return points

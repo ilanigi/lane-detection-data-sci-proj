@@ -1,3 +1,4 @@
+import cv2.cv2
 import numpy as np
 from cv2.cv2 import imshow, waitKey, destroyAllWindows
 from matplotlib import pyplot as plt
@@ -5,11 +6,34 @@ from matplotlib import pyplot as plt
 
 def get_rectangle_from_mid_bottom(mid_bottom_point, length, height, img_width):
     x, y = mid_bottom_point
-    if 2*x < length:
-        x = length/2
-    elif 2*x + length > 2*img_width:
-        x = img_width - length/2 - 1
+    if 2 * x < length:
+        x = length / 2
+    elif 2 * x + length > 2 * img_width:
+        x = img_width - length / 2 - 1
     return (int(x - length / 2), int(y - height)), (int(x + length / 2), y)
+
+
+def draw_parallelogram(img, par):
+    height, width = img.shape
+    upper_left, bottom_right, length = par
+    x_left, y_up_left = upper_left
+    x_right, y_btm_right = bottom_right
+    y_up_right = y_btm_right - length
+    y_btm_left = y_up_left + length
+
+    for coordinate in [x_left, x_right, y_btm_left, y_up_right]:
+        if coordinate is width or coordinate < 0:
+            raise Exception("parallelogram  out of bound")
+
+    for coordinate in [y_up_left, y_btm_right, y_btm_left, y_up_right]:
+        if coordinate is height or coordinate < 0:
+            raise Exception("parallelogram out of bound")
+
+    cv2.line(img, upper_left, (x_left, y_btm_left), 255, 1)
+    cv2.line(img, upper_left, (x_right, y_up_right), 255, 1)
+
+    cv2.line(img, bottom_right, (x_left, y_btm_left), 255, 1)
+    cv2.line(img, bottom_right, (x_right, y_up_right), 255, 1)
 
 
 def draw_rectangle(img, rectangle):
