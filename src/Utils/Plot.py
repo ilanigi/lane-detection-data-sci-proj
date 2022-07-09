@@ -14,7 +14,7 @@ def get_rectangle_from_mid_bottom(mid_bottom_point, length, height, img_width):
 
 def draw_parallelogram(img, par):
     height, width = img.shape
-    upper_left, bottom_right, par_width = par
+    upper_left, bottom_right, par_width, par_height = par
     x_up_left, y_up = upper_left
     x_btm_right, y_btm = bottom_right
 
