@@ -1,11 +1,12 @@
 from ast import Lambda
-from typing import Tuple
+from typing import List
 import cv2
+from cv2 import mean
 import numpy as np
 from matplotlib import pyplot as plt
 
 from sklearn import linear_model
-from Utils.Plot import draw_parallelogram, get_rectangle_from_mid_bottom, show_image
+from Utils.Plot import draw_parallelogram, get_rectangle_from_mid_bottom, plot_data, show_image
 from Utils.Preprocess import general, get_data_from_parallelogram, get_params_for_linear_equation
 from Utils.Types import Point
 
@@ -112,7 +113,7 @@ def rac_regression_loop(img_path='images/10.jpg', rectangle_height=150, rectangl
 
 def main_par_regression_loop(img_path='images/142.jpg'):
 
-    par_height = 280
+    par_height = 180
     par_width = 120
     img = general(img_path, min_neighbors_amount_list=[2,1])
 
@@ -132,15 +133,14 @@ def main_par_regression_loop(img_path='images/142.jpg'):
     for par in left_par_list:
         upper_left, bottom_right, par_width, par_height = par
         draw_parallelogram(img, (upper_left, bottom_right, par_width))
-    show_image(img)
 
     for par in right_par_list:
         upper_left, bottom_right, par_width, par_height = par
         draw_parallelogram(img, (upper_left, bottom_right, par_width))
     show_image(img)
 
-    print(left_estimated_points)
-    print(right_estimated_points)
+    print('Left estimated points:', left_estimated_points)
+    print('Right estimated points:', right_estimated_points)
 
 
 def calc_pars(img: np.ndarray, upper_left:Point, bottom_right:Point ,par_width: int, par_height: int, par_amount=1):
@@ -154,14 +154,17 @@ def calc_pars(img: np.ndarray, upper_left:Point, bottom_right:Point ,par_width: 
         x_up, y_up = upper_left
 
         draw_parallelogram(img,old_par)
+        show_image(img)
 
         points = get_data_from_parallelogram(
             img, (upper_left, bottom_right, par_width))
 
+        # plot_data(points)
+
         m,n = line_params_from_RANSAC(points)
         
-        linear_equation_by_y = lambda y:(y-n) / m
-        linear_equation_by_x = lambda x:m*x + n
+        linear_equation_by_y = lambda y:((y-n) / m)
+        linear_equation_by_x = lambda x:(m*x + n)
 
         
         xy = [(i,int(linear_equation_by_x(i))) for i in range(600) if 0 < int(linear_equation_by_x(i)) < 800]
@@ -192,7 +195,7 @@ def calc_pars(img: np.ndarray, upper_left:Point, bottom_right:Point ,par_width: 
         # par_list.append((new_upper_left, new_bottom_right,
         #                 par_width, new_par_height))
 
-     return par_list, estimated_points
+    return par_list, estimated_points
 
 
 def get_point_from_RANSAC(img, current_rectangle):
@@ -210,28 +213,59 @@ def get_point_from_RANSAC(img, current_rectangle):
 
     return int(new_x), y_left
 
+def points_close_to_mean(points:List[Point], threshold = 15)->bool:
+    x, y = zip(*points)
+    
+    mean = sum(y)/len(y)
+    close_to_mean = len(filter(lambda i:abs(i-mean) <= threshold, y))
+    
+    close_percent = close_to_mean/len(y)
+    return close_percent > 0.8
+
 
 def line_params_from_RANSAC(points):
     plot_RANSAC(points)
-
     x, y = zip(*points)
-    y = np.asarray(y)
-    x = np.array(x)[:, np.newaxis]
 
-    ransac = linear_model.RANSACRegressor()
-    ransac.fit(x, y)
+    if points_close_to_mean(points):
+        y = np.asarray(y)
+        x = np.array(x)[:, np.newaxis]
 
-    line_x = np.arange(x.min(), x.max())[:, np.newaxis]
-    line_y = ransac.predict(line_x)
-    y_0 = line_y[0]
-    y_1 = line_y[1]
+        mean_y = sum(y)/len(y)
+        mean_x = sum(y)/len(y)
+        close_points = filter(lambda point: abs(mean_y - mean_y[1]) < 15 and abs(mean_x - mean_y[1])< 15, points)
+        x, y = zip(*close_points)
+        max_y = max(y)
+        min_y=9999
+        max_x=0
+        min_x=9999
 
-    x_0 = np.asscalar(line_x[0])
-    x_1 = np.asscalar(line_x[1])
+        fot
 
-    m, n = get_params_for_linear_equation((x_1, y_1), (x_0, y_0))
 
-    return m, n
+        
+
+       
+    else:
+        
+        y = np.asarray(y)
+        x = np.array(x)[:, np.newaxis]
+
+        ransac = linear_model.RANSACRegressor()
+        ransac.fit(x, y)
+
+        line_x = np.arange(x.min(), x.max())[:, np.newaxis]
+        line_y = ransac.predict(line_x)
+        y_0 = line_y[0]
+        y_1 = line_y[1]
+
+        x_0 = np.asscalar(line_x[0])
+        x_1 = np.asscalar(line_x[1])
+
+        m, n = get_params_for_linear_equation((x_1, y_1), (x_0, y_0))
+
+        return m, n
+        
 
 
 def plot_RANSAC(points):
