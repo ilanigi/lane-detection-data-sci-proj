@@ -74,7 +74,7 @@ def set_linear_equation(point_1, point_2):
 """
 Get n and m for linear equation out of two points on it's line.
 """
-def get_params_for_linear_equation(point_1:Point, point_2:Point)->Tuple[int,int]:
+def get_params_for_linear_equation(point_1:Point, point_2:Point)->Point:
     x_1, y_1 = point_1
     x_2, y_2 = point_2
 
