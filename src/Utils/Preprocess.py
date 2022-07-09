@@ -1,8 +1,9 @@
+from typing import Tuple
 import numpy as np
 from cv2.cv2 import imread, cvtColor, COLOR_BGR2GRAY
 
 
-def general(image_name, min_neighbors_amount_list = [2, 1]):
+def general(image_name:str, min_neighbors_amount_list = [2, 1])->np.ndarray:
     img = imread(image_name)
     img = cvtColor(img, COLOR_BGR2GRAY)
     img = delete_none_binary_pixels(img)
@@ -11,7 +12,7 @@ def general(image_name, min_neighbors_amount_list = [2, 1]):
     return img
 
 
-def delete_noise_by_neighbors(img, kernel=[-1, 0, 1], min_neighbors_amount=3):
+def delete_noise_by_neighbors(img:np.ndarray, kernel=[-1, 0, 1], min_neighbors_amount=3):
     height, width = img.shape
     out_img = np.zeros((height, width))
     for i in range(height):
@@ -34,7 +35,7 @@ def delete_noise_by_neighbors(img, kernel=[-1, 0, 1], min_neighbors_amount=3):
     return out_img
 
 
-def delete_none_binary_pixels(img):
+def delete_none_binary_pixels(img:np.ndarray):
     threshold = 240
     height, width = img.shape
 
@@ -48,7 +49,7 @@ def delete_none_binary_pixels(img):
     return img
 
 
-def image_to_data(img):
+def image_to_data(img:np.ndarray):
     points = []
     height, width = img.shape
     for i in range(height):
@@ -68,17 +69,20 @@ def set_linear_equation(point_1, point_2):
     n = y_1 - m*x_1
     return lambda x: m * x + n
 
-
-def set_linear_equation_by_y(point_1, point_2):
+"""
+Get n and m for linear equation out of two points on it's line.
+"""
+def get_params_for_linear_equation(point_1:Tuple[int,int], point_2:Tuple[int,int])->Tuple[int,int]:
     x_1, y_1 = point_1
     x_2, y_2 = point_2
-    m = (y_2 - y_1)/(x_2 - x_1)
+
+    m = (y_2 - y_1)/(x_2 - x_1)   
     n = y_1 - m*x_1
 
-    return lambda y: (y - n) / m
+    return  m , n
 
 
-def get_data_from_parallelogram(img, par):
+def get_data_from_parallelogram(img:np.ndarray, par:Tuple[Tuple[int,int],Tuple[int,int],int,int]):
     upper_left, bottom_right, par_width = par
     x_up_left, y_up = upper_left
     x_btm_right, y_btm = bottom_right
