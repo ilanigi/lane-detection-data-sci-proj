@@ -1,6 +1,10 @@
+from typing import List
 import cv2.cv2
 from cv2.cv2 import imshow, waitKey, destroyAllWindows
 from matplotlib import pyplot as plt
+import numpy as np
+
+from Utils.Types import Parallelogram, Point
 
 
 def get_rectangle_from_mid_bottom(mid_bottom_point, length, height, img_width):
@@ -12,7 +16,7 @@ def get_rectangle_from_mid_bottom(mid_bottom_point, length, height, img_width):
     return (int(x - length / 2), int(y - height)), (int(x + length / 2), y)
 
 
-def draw_parallelogram(img, par):
+def draw_parallelogram(img:np.ndarray, par:Parallelogram):
     height, width = img.shape
     upper_left, bottom_right, par_width, par_height = par
     x_up_left, y_up = upper_left
@@ -62,13 +66,13 @@ def draw_rectangle(img, rectangle):
     img[y_left:y_right, x_right] = 255
 
 
-def show_image(img, img_name='img'):
+def show_image(img:np.ndarray, img_name='img'):
     imshow(img_name, img)
     waitKey(0)
     destroyAllWindows()
 
 
-def plot_data(points):
+def plot_data(points: List[Point]):
     x, y = zip(*points)
     plt.scatter(x, y, s=0.5, c='k')
 

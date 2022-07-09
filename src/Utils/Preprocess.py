@@ -2,6 +2,8 @@ from typing import Tuple
 import numpy as np
 from cv2.cv2 import imread, cvtColor, COLOR_BGR2GRAY
 
+from Utils.Types import Parallelogram, Point
+
 
 def general(image_name:str, min_neighbors_amount_list = [2, 1])->np.ndarray:
     img = imread(image_name)
@@ -72,7 +74,7 @@ def set_linear_equation(point_1, point_2):
 """
 Get n and m for linear equation out of two points on it's line.
 """
-def get_params_for_linear_equation(point_1:Tuple[int,int], point_2:Tuple[int,int])->Tuple[int,int]:
+def get_params_for_linear_equation(point_1:Point, point_2:Point)->Tuple[int,int]:
     x_1, y_1 = point_1
     x_2, y_2 = point_2
 
@@ -82,7 +84,7 @@ def get_params_for_linear_equation(point_1:Tuple[int,int], point_2:Tuple[int,int
     return  m , n
 
 
-def get_data_from_parallelogram(img:np.ndarray, par:Tuple[Tuple[int,int],Tuple[int,int],int,int]):
+def get_data_from_parallelogram(img:np.ndarray, par:Parallelogram):
     upper_left, bottom_right, par_width = par
     x_up_left, y_up = upper_left
     x_btm_right, y_btm = bottom_right
