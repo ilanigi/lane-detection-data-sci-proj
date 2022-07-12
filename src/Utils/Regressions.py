@@ -6,12 +6,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from sklearn import linear_model
-from Utils.Plot import draw_parallelogram, get_rectangle_from_mid_bottom, plot_data, show_image
+from Utils.Plot import draw_parallelogram, get_rectangle_from_mid_bottom, plot_data,  show_image
 from Utils.Preprocess import general, get_data_from_parallelogram, get_params_for_linear_equation
 from Utils.Types import Point
 
 
-def get_par_from_mid_point(RANSAC_line_by_y:Lambda, old_y_up:int, par_width:int, par_height:int):
+def get_par_from_mid_point(RANSAC_line_by_y: Lambda, old_y_up: int, par_width: int, par_height: int):
     mid_btm_x = RANSAC_line_by_y(old_y_up)
 
     new_y_up = old_y_up - par_height
@@ -111,22 +111,79 @@ def rac_regression_loop(img_path='images/10.jpg', rectangle_height=150, rectangl
     show_image(img)
 
 
-def main_par_regression_loop(img_path='images/142.jpg'):
-
-    par_height = 180
-    par_width = 120
-    img = general(img_path, min_neighbors_amount_list=[2,1])
-
+def get_data_from_first_pars(img):
     height, width = img.shape
+    par_height = 200
 
-    upper_left = (180, height - par_height)
-    bottom_right = (par_width, height - 1)
+    m = -1.28
+    n_1 = 700
+    n_2 = 900
+
+    def x_1(y): return (y - n_1) / m
+    def y_1(x): return m * x + n_1
+
+    def x_2(y): return (y - n_2) / m
+    def y_2(x): return m * x + n_2
+
+    left_points = []
+
+    # upper_left = (int(x_1(height - par_height)), height - par_height)
+    # upper_right = (int(x_2(height - par_height)), height - par_height)
+
+    # bottom_right = (int(x_2(799)), 799)
+    # bottom_left = (0, int(y_1(0)))
+    for y in range(height - par_height, height):
+        for x in range(int(x_2(height - par_height))):
+            if img[y, x] == 0:
+                continue
+            elif y_1(x) <= y <= y_2(x):
+                    left_points.append((x, y))
+
+   #####################################################
+    m = 1.28
+    n_1 = -700
+    n_2 = -900
+
+    def x_1(y): return (y - n_1) / m
+    def y_1(x): return m * x + n_1
+
+    def x_2(y): return (y - n_2) / m
+    def y_2(x): return m * x + n_2
+
+    # upper_left = (int(x_1(height - par_height)), height - par_height)
+    # bottom_left = (int(x_1(799)), 799)
+
+    # upper_right = (int(x_2(height - par_height)), height - par_height)
+    # bottom_right = (width, int(y_2(width)))
+
+    
+
+    right_points = []
+    for y in range(height - par_height, height):
+        for x in range(width):
+            if img[y, x] == 0:
+                continue
+            elif y_1(x) <= y <= y_2(x):
+                    right_points.append((x, y))
+    
+    plot_data(right_points)
+    plot_data(left_points)
+
+
+def main_par_regression_loop(img_path='images/10.jpg'):
+
+    par_height = 200
+    par_width = 120
+    img = general(img_path, min_neighbors_amount_list=[2, 1])
+    get_data_from_first_pars(img)
+    height, width = img.shape
 
     left_par_list, left_estimated_points = calc_pars(
         img, upper_left, bottom_right, par_width, par_height)
 
     upper_left = (width - 180 - par_width, height - par_height)
     bottom_right = (par_width-1, height - 1)
+
     right_par_list, right_estimated_points = calc_pars(
         img, upper_left, bottom_right, par_width, par_height)
 
@@ -143,7 +200,7 @@ def main_par_regression_loop(img_path='images/142.jpg'):
     print('Right estimated points:', right_estimated_points)
 
 
-def calc_pars(img: np.ndarray, upper_left:Point, bottom_right:Point ,par_width: int, par_height: int, par_amount=1):
+def calc_pars(img: np.ndarray, upper_left: Point, bottom_right: Point, par_width: int, par_height: int, par_amount=1):
     par_list = [(upper_left, bottom_right, par_width, par_height)]
     estimated_points = []
     for i in range(par_amount):
@@ -153,7 +210,7 @@ def calc_pars(img: np.ndarray, upper_left:Point, bottom_right:Point ,par_width: 
         upper_left, bottom_right, par_width, par_height = old_par
         x_up, y_up = upper_left
 
-        draw_parallelogram(img,old_par)
+        draw_parallelogram(img, old_par)
         show_image(img)
 
         points = get_data_from_parallelogram(
@@ -161,30 +218,28 @@ def calc_pars(img: np.ndarray, upper_left:Point, bottom_right:Point ,par_width: 
 
         # plot_data(points)
 
-        m,n = line_params_from_RANSAC(points)
-        
-        linear_equation_by_y = lambda y:((y-n) / m)
-        linear_equation_by_x = lambda x:(m*x + n)
+        m, n = line_params_from_RANSAC(points)
 
-        
-        xy = [(i,int(linear_equation_by_x(i))) for i in range(600) if 0 < int(linear_equation_by_x(i)) < 800]
+        def linear_equation_by_y(y): return ((y-n) / m)
+        def linear_equation_by_x(x): return (m*x + n)
 
-        max:tuple
-        min:tuple
-        min_y = 9999
-        max_y = -1
-        for point in xy:
-            x,y = point
-            if y<min_y: 
-                min = point
-                min_y = y
-            if y>max_y:
-                max = point
-                max_y = y
+        # xy = [(i,int(linear_equation_by_x(i))) for i in range(600) if 0 < int(linear_equation_by_x(i)) < 800]
 
-        cv2.line(img, min, max, 255, 1)
-        show_image(img)
+        # max:tuple
+        # min:tuple
+        # min_y = 9999
+        # max_y = -1
+        # for point in xy:
+        #     x,y = point
+        #     if y<min_y:
+        #         min = point
+        #         min_y = y
+        #     if y>max_y:
+        #         max = point
+        #         max_y = y
 
+        # cv2.line(img, min, max, 255, 1)
+        # show_image(img)
 
         # estimated_points.append((int(linear_equation(y_up)), y_up))
 
@@ -213,12 +268,13 @@ def get_point_from_RANSAC(img, current_rectangle):
 
     return int(new_x), y_left
 
-def points_close_to_mean(points:List[Point], threshold = 15)->bool:
+
+def points_close_to_mean(points: List[Point], threshold=30) -> bool:
     x, y = zip(*points)
-    
+
     mean = sum(y)/len(y)
-    close_to_mean = len(filter(lambda i:abs(i-mean) <= threshold, y))
-    
+    close_to_mean = len(filter(lambda i: abs(i-mean) <= threshold, y))
+
     close_percent = close_to_mean/len(y)
     return close_percent > 0.8
 
@@ -227,50 +283,45 @@ def line_params_from_RANSAC(points):
     plot_RANSAC(points)
     x, y = zip(*points)
 
-    if points_close_to_mean(points):
-        y = np.asarray(y)
-        x = np.array(x)[:, np.newaxis]
+    # if points_close_to_mean(points):
+    #     y = np.asarray(y)
+    #     x = np.array(x)[:, np.newaxis]
 
-        mean_y = sum(y)/len(y)
-        mean_x = sum(y)/len(y)
-        close_points = filter(lambda point: abs(mean_y - mean_y[1]) < 15 and abs(mean_x - mean_y[1])< 15, points)
-        x, y = zip(*close_points)
-        max_y = max(y)
-        min_y=9999
-        max_x=0
-        min_x=9999
+    #     mean_y = sum(y)/len(y)
+    #     mean_x = sum(y)/len(y)
+    #     close_points = filter(lambda point: abs(mean_y - mean_y[1]) < 15 and abs(mean_x - mean_y[1])< 15, points)
+    #     x, y = zip(*close_points)
+    #     max_y = max(y)
+    #     min_y=9999
+    #     max_x=0
+    #     min_x=9999
 
-        fot
+    #     fot
 
+    # else:
 
-        
+    y = np.asarray(y)
+    x = np.array(x)[:, np.newaxis]
 
-       
-    else:
-        
-        y = np.asarray(y)
-        x = np.array(x)[:, np.newaxis]
+    ransac = linear_model.RANSACRegressor()
+    ransac.fit(x, y)
 
-        ransac = linear_model.RANSACRegressor()
-        ransac.fit(x, y)
+    line_x = np.arange(x.min(), x.max())[:, np.newaxis]
+    line_y = ransac.predict(line_x)
+    y_0 = line_y[0]
+    y_1 = line_y[1]
 
-        line_x = np.arange(x.min(), x.max())[:, np.newaxis]
-        line_y = ransac.predict(line_x)
-        y_0 = line_y[0]
-        y_1 = line_y[1]
+    x_0 = np.asscalar(line_x[0])
+    x_1 = np.asscalar(line_x[1])
 
-        x_0 = np.asscalar(line_x[0])
-        x_1 = np.asscalar(line_x[1])
+    m, n = get_params_for_linear_equation((x_1, y_1), (x_0, y_0))
 
-        m, n = get_params_for_linear_equation((x_1, y_1), (x_0, y_0))
-
-        return m, n
-        
+    return m, n
 
 
 def plot_RANSAC(points):
     # points = image_to_data(img)
-    x,y = zip(*points)
+    x, y = zip(*points)
     y = np.asarray(y)
     X = np.array(x)[:, np.newaxis]
 
@@ -295,7 +346,8 @@ def plot_RANSAC(points):
         linewidth=2,
         label="RANSAC regressor",
     )
-
+    print(len(X[inliner_mask]))
+    print(len(X[outliner_mask]))
     plt.legend(loc="lower right")
     plt.xlabel("Input")
     plt.ylabel("Response")
