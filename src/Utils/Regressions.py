@@ -110,8 +110,7 @@ def rac_regression_loop(img_path='images/10.jpg', rectangle_height=150, rectangl
 
     show_image(img)
 
-
-def get_data_from_first_pars(img):
+def get_data_from_first_pars(img:np.ndarray):
     height, width = img.shape
     par_height = 200
 
@@ -119,55 +118,46 @@ def get_data_from_first_pars(img):
     n_1 = 700
     n_2 = 900
 
-    def x_1(y): return (y - n_1) / m
     def y_1(x): return m * x + n_1
-
     def x_2(y): return (y - n_2) / m
     def y_2(x): return m * x + n_2
 
-    left_points = []
-
-    # upper_left = (int(x_1(height - par_height)), height - par_height)
-    # upper_right = (int(x_2(height - par_height)), height - par_height)
-
-    # bottom_right = (int(x_2(799)), 799)
-    # bottom_left = (0, int(y_1(0)))
-    for y in range(height - par_height, height):
-        for x in range(int(x_2(height - par_height))):
-            if img[y, x] == 0:
-                continue
-            elif y_1(x) <= y <= y_2(x):
-                    left_points.append((x, y))
+    left_points = points_from_left(img, height, par_height, y_1, x_2, y_2)
 
    #####################################################
+    
     m = 1.28
     n_1 = -700
     n_2 = -900
 
     def x_1(y): return (y - n_1) / m
     def y_1(x): return m * x + n_1
-
-    def x_2(y): return (y - n_2) / m
     def y_2(x): return m * x + n_2
 
-    # upper_left = (int(x_1(height - par_height)), height - par_height)
-    # bottom_left = (int(x_1(799)), 799)
-
-    # upper_right = (int(x_2(height - par_height)), height - par_height)
-    # bottom_right = (width, int(y_2(width)))
-
+    right_points = points_from_right(img, height, width, par_height, x_1, y_1, y_2)
     
+    return left_points, right_points
 
-    right_points = []
+def points_from_left(img, height, par_height, y_1, x_2, y_2):
+    left_points = []
     for y in range(height - par_height, height):
-        for x in range(width):
+        for x in range(int(x_2(height - par_height))):
             if img[y, x] == 0:
                 continue
             elif y_1(x) <= y <= y_2(x):
-                    right_points.append((x, y))
+                left_points.append((x, y))
+
+def points_from_right(img, height, width, par_height, x_1, y_1, y_2):
+    points = []
+    for y in range(height - par_height, height):
+        for x in range(int(x_1(height - par_height)),width):
+            if img[y, x] == 0:
+                continue
+            elif y_2(x) <= y <= y_1(x):
+                points.append((x, y))
+    return points
     
-    plot_data(right_points)
-    plot_data(left_points)
+    
 
 
 def main_par_regression_loop(img_path='images/10.jpg'):
@@ -175,8 +165,9 @@ def main_par_regression_loop(img_path='images/10.jpg'):
     par_height = 200
     par_width = 120
     img = general(img_path, min_neighbors_amount_list=[2, 1])
-    get_data_from_first_pars(img)
+    left_points, right_points = get_data_from_first_pars(img)
     height, width = img.shape
+    
 
     left_par_list, left_estimated_points = calc_pars(
         img, upper_left, bottom_right, par_width, par_height)
