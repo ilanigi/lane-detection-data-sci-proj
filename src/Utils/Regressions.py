@@ -22,7 +22,6 @@ def get_par_from_mid_point(RANSAC_line_by_y: Lambda, old_y_up: int, par_width: i
     return new_upper_left, new_bottom_right
 
 
-# deprecated
 def par_regression_loop(img_path='images/10.jpg', par_height=120, par_width=120, par_amount=3):
     img = general(img_path)
 
@@ -74,43 +73,7 @@ def par_regression_loop(img_path='images/10.jpg', par_height=120, par_width=120,
         draw_parallelogram(img, par)
 
 
-def rac_regression_loop(img_path='images/10.jpg', rectangle_height=150, rectangle_width=250, rec_amount=4):
-
-    img = general(img_path)
-
-    height, width = img.shape
-
-    right_rec_list = [((width - rectangle_width, height -
-                       rectangle_height), (width - 1, height - 1))]
-    left_rec_list = [((0, height - rectangle_height),
-                      (rectangle_width, height - 1))]
-
-    for i in range(rec_amount):
-        if i >= 1:
-            rectangle_height /= 1.5
-            rectangle_width /= 1.5
-
-        left_rec = left_rec_list[-1]
-        point = get_point_from_RANSAC(img, left_rec)
-        left_rec = get_rectangle_from_mid_bottom(
-            point, rectangle_width, rectangle_height, width)
-        left_rec_list.append(left_rec)
-
-        right_rec = right_rec_list[-1]
-        point = get_point_from_RANSAC(img, right_rec)
-        right_rec = get_rectangle_from_mid_bottom(
-            point, rectangle_width, rectangle_height, width)
-        right_rec_list.append(right_rec)
-
-    for rec in right_rec_list:
-        draw_rectangle(img, rec)
-
-    for rec in left_rec_list:
-        draw_rectangle(img, rec)
-
-    show_image(img)
-
-def get_data_from_first_pars(img:np.ndarray):
+def get_data_from_first_pars(img: np.ndarray):
     height, width = img.shape
     par_height = 200
 
@@ -125,7 +88,7 @@ def get_data_from_first_pars(img:np.ndarray):
     left_points = points_from_left(img, height, par_height, y_1, x_2, y_2)
 
    #####################################################
-    
+
     m = 1.28
     n_1 = -700
     n_2 = -900
@@ -134,9 +97,11 @@ def get_data_from_first_pars(img:np.ndarray):
     def y_1(x): return m * x + n_1
     def y_2(x): return m * x + n_2
 
-    right_points = points_from_right(img, height, width, par_height, x_1, y_1, y_2)
-    
+    right_points = points_from_right(
+        img, height, width, par_height, x_1, y_1, y_2)
+
     return left_points, right_points
+
 
 def points_from_left(img, height, par_height, y_1, x_2, y_2):
     left_points = []
@@ -147,33 +112,31 @@ def points_from_left(img, height, par_height, y_1, x_2, y_2):
             elif y_1(x) <= y <= y_2(x):
                 left_points.append((x, y))
 
+
 def points_from_right(img, height, width, par_height, x_1, y_1, y_2):
     points = []
     for y in range(height - par_height, height):
-        for x in range(int(x_1(height - par_height)),width):
+        for x in range(int(x_1(height - par_height)), width):
             if img[y, x] == 0:
                 continue
             elif y_2(x) <= y <= y_1(x):
                 points.append((x, y))
     return points
-    
-    
 
 
-def main_par_regression_loop(img_path='images/10.jpg'):
+def main_par_regression_loop(img_path='images/10.jpg', par_height=200, par_width=120):
 
-    par_height = 200
-    par_width = 120
     img = general(img_path, min_neighbors_amount_list=[2, 1])
-    left_points, right_points = get_data_from_first_pars(img)
-    height, width = img.shape
-    
+
+    first_left_par, first_right_par = get_first_pars(
+        par_width, img, par_height)
+
+    upper_left, bottom_right, par_width, par_height = first_left_par
 
     left_par_list, left_estimated_points = calc_pars(
         img, upper_left, bottom_right, par_width, par_height)
 
-    upper_left = (width - 180 - par_width, height - par_height)
-    bottom_right = (par_width-1, height - 1)
+    upper_left, bottom_right, par_width, par_height = first_right_par
 
     right_par_list, right_estimated_points = calc_pars(
         img, upper_left, bottom_right, par_width, par_height)
@@ -189,6 +152,34 @@ def main_par_regression_loop(img_path='images/10.jpg'):
 
     print('Left estimated points:', left_estimated_points)
     print('Right estimated points:', right_estimated_points)
+
+
+def get_first_pars(par_width, img, par_height):
+    left_points, right_points = get_data_from_first_pars(img)
+
+    left_par = get_pars_from_points(
+        par_width, img, left_points, par_height)
+
+    right_par = get_pars_from_points(
+        par_width, img, right_points, par_height)
+
+    return left_par, right_par
+
+
+def get_pars_from_points(par_width, img, left_points, par_height):
+    m, n = line_params_from_RANSAC(left_points)
+
+    def linear_equation_by_y(y): return ((y-n) / m)
+    def linear_equation_by_x(x): return (m*x + n)
+
+    draw_line_from_RANSAC(img, linear_equation_by_x)
+
+    new_par_height = int(par_height * 2 / 3)
+
+    new_upper_left, new_bottom_right = get_par_from_mid_point(
+        linear_equation_by_y, 600, par_width, new_par_height)
+
+    return new_upper_left, new_bottom_right
 
 
 def calc_pars(img: np.ndarray, upper_left: Point, bottom_right: Point, par_width: int, par_height: int, par_amount=1):
@@ -207,41 +198,45 @@ def calc_pars(img: np.ndarray, upper_left: Point, bottom_right: Point, par_width
         points = get_data_from_parallelogram(
             img, (upper_left, bottom_right, par_width))
 
-        # plot_data(points)
-
         m, n = line_params_from_RANSAC(points)
 
         def linear_equation_by_y(y): return ((y-n) / m)
         def linear_equation_by_x(x): return (m*x + n)
 
-        # xy = [(i,int(linear_equation_by_x(i))) for i in range(600) if 0 < int(linear_equation_by_x(i)) < 800]
+        draw_line_from_RANSAC(img, linear_equation_by_x)
 
-        # max:tuple
-        # min:tuple
-        # min_y = 9999
-        # max_y = -1
-        # for point in xy:
-        #     x,y = point
-        #     if y<min_y:
-        #         min = point
-        #         min_y = y
-        #     if y>max_y:
-        #         max = point
-        #         max_y = y
+        estimated_points.append((int(linear_equation_by_y(y_up)), y_up))
 
-        # cv2.line(img, min, max, 255, 1)
-        # show_image(img)
+        new_par_height = int(par_height * 2 / 3)
 
-        # estimated_points.append((int(linear_equation(y_up)), y_up))
+        new_upper_left, new_bottom_right = get_par_from_mid_point(
+            linear_equation_by_y, y_up, par_width, new_par_height)
 
-        # new_par_height = int(par_height * 2 / 3)
-
-        # new_upper_left, new_bottom_right = get_par_from_mid_point(
-        #     linear_equation, y_up, par_width, new_par_height)
-        # par_list.append((new_upper_left, new_bottom_right,
-        #                 par_width, new_par_height))
+        par_list.append((new_upper_left, new_bottom_right,
+                        par_width, new_par_height))
 
     return par_list, estimated_points
+
+
+def draw_line_from_RANSAC(img, linear_equation_by_x):
+    xy = [(i, int(linear_equation_by_x(i)))
+          for i in range(600) if 0 < int(linear_equation_by_x(i)) < 800]
+
+    max: tuple
+    min: tuple
+    min_y = 9999
+    max_y = -1
+    for point in xy:
+        x, y = point
+        if y < min_y:
+            min = point
+            min_y = y
+        if y > max_y:
+            max = point
+            max_y = y
+
+    cv2.line(img, min, max, 255, 1)
+    show_image(img)
 
 
 def get_point_from_RANSAC(img, current_rectangle):
@@ -260,36 +255,9 @@ def get_point_from_RANSAC(img, current_rectangle):
     return int(new_x), y_left
 
 
-def points_close_to_mean(points: List[Point], threshold=30) -> bool:
-    x, y = zip(*points)
-
-    mean = sum(y)/len(y)
-    close_to_mean = len(filter(lambda i: abs(i-mean) <= threshold, y))
-
-    close_percent = close_to_mean/len(y)
-    return close_percent > 0.8
-
-
 def line_params_from_RANSAC(points):
-    plot_RANSAC(points)
+    # plot_RANSAC(points)
     x, y = zip(*points)
-
-    # if points_close_to_mean(points):
-    #     y = np.asarray(y)
-    #     x = np.array(x)[:, np.newaxis]
-
-    #     mean_y = sum(y)/len(y)
-    #     mean_x = sum(y)/len(y)
-    #     close_points = filter(lambda point: abs(mean_y - mean_y[1]) < 15 and abs(mean_x - mean_y[1])< 15, points)
-    #     x, y = zip(*close_points)
-    #     max_y = max(y)
-    #     min_y=9999
-    #     max_x=0
-    #     min_x=9999
-
-    #     fot
-
-    # else:
 
     y = np.asarray(y)
     x = np.array(x)[:, np.newaxis]
@@ -346,3 +314,51 @@ def plot_RANSAC(points):
     ax.set_ylim(ax.get_ylim()[::-1])
     ax.xaxis.tick_top()
     plt.show()
+
+
+def points_close_to_mean(points: List[Point], threshold=30) -> bool:
+    x, y = zip(*points)
+
+    mean = sum(y)/len(y)
+    close_to_mean = len(filter(lambda i: abs(i-mean) <= threshold, y))
+
+    close_percent = close_to_mean/len(y)
+    return close_percent > 0.8
+
+
+# deprecated
+def rac_regression_loop(img_path='images/10.jpg', rectangle_height=150, rectangle_width=250, rec_amount=4):
+
+    img = general(img_path)
+
+    height, width = img.shape
+
+    right_rec_list = [((width - rectangle_width, height -
+                       rectangle_height), (width - 1, height - 1))]
+    left_rec_list = [((0, height - rectangle_height),
+                      (rectangle_width, height - 1))]
+
+    for i in range(rec_amount):
+        if i >= 1:
+            rectangle_height /= 1.5
+            rectangle_width /= 1.5
+
+        left_rec = left_rec_list[-1]
+        point = get_point_from_RANSAC(img, left_rec)
+        left_rec = get_rectangle_from_mid_bottom(
+            point, rectangle_width, rectangle_height, width)
+        left_rec_list.append(left_rec)
+
+        right_rec = right_rec_list[-1]
+        point = get_point_from_RANSAC(img, right_rec)
+        right_rec = get_rectangle_from_mid_bottom(
+            point, rectangle_width, rectangle_height, width)
+        right_rec_list.append(right_rec)
+
+    for rec in right_rec_list:
+        draw_rectangle(img, rec)
+
+    for rec in left_rec_list:
+        draw_rectangle(img, rec)
+
+    show_image(img)
