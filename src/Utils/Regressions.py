@@ -53,6 +53,7 @@ def get_init_data(img: np.ndarray, par_height: int):
     cv2.line(img, upper_left, upper_right, 255, 1)
     cv2.line(img, upper_left, bottom_left, 255, 1)
     cv2.line(img, upper_right, bottom_right, 255, 1)
+    
    ####################################################
 
     m = 1.28
@@ -163,7 +164,7 @@ def calc_pars(img: np.ndarray, first_points,  par_width: int, par_height: int, o
 
 
 def line_params_from_RANSAC(points):
-    plot_RANSAC(points)
+    # plot_RANSAC(points)
     x, y = zip(*points)
 
     y = np.asarray(y)

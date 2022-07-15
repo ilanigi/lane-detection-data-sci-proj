@@ -1,4 +1,3 @@
-from typing import Tuple
 import numpy as np
 from cv2.cv2 import imread, cvtColor, COLOR_BGR2GRAY
 
