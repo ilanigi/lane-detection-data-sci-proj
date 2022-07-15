@@ -2,7 +2,7 @@
 
 source code is in src.
 
-note book is in lane detection.ipynb
+notebook is in lane detection.ipynb
 
 video is in video1065892934.mp4 
 
