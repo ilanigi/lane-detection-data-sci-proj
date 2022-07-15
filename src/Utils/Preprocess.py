@@ -80,7 +80,6 @@ def get_params_for_linear_equation(point_1:Point, point_2:Point)->Point:
 
     m = (y_2 - y_1)/(x_2 - x_1)   
     n = y_1 - m*x_1
-
     return  m , n
 
 
@@ -101,7 +100,7 @@ def get_data_from_parallelogram(img:np.ndarray, par:Parallelogram):
             if img[y, x] == 0:
                 continue
             else:
-                if left_line(x) <= y <= right_line(x):
+                if min(left_line(x),right_line(x)) <= y <= max(left_line(x),right_line(x)):
                     points.append((x, y))
 
     return points
