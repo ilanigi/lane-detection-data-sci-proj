@@ -84,6 +84,8 @@ def get_params_for_linear_equation(point_1:Point, point_2:Point)->Point:
 
 
 def get_data_from_parallelogram(img:np.ndarray, par:Parallelogram):
+    height, width = img.shape
+
     upper_left, bottom_right, par_width = par
     x_up_left, y_up = upper_left
     x_btm_right, y_btm = bottom_right
@@ -95,10 +97,24 @@ def get_data_from_parallelogram(img:np.ndarray, par:Parallelogram):
     right_line = set_linear_equation(bottom_right, (x_up_right, y_up))
     points = []
 
+    for coordinate in [min(x_btm_left,x_up_left), max(x_btm_right,x_up_right)]:
+        if coordinate is height or coordinate < 0:
+            print('coordinate ' + str(coordinate) + ' out of bound!')
+            return []
+
+    for coordinate in [y_up, y_up]:
+        if coordinate is width or coordinate < 0:
+            print('coordinate ' +  str(coordinate) + ' out of bound!')            
+            return []
+
+
     for y in range(y_up, y_btm):
         for x in range(min(x_btm_left,x_up_left),max(x_btm_right,x_up_right) ):
-            if img[y, x] == 0:
-                continue
+            try:
+                if img[y, x] == 0:
+                    continue
+            except:
+                pass
             else:
                 if min(left_line(x),right_line(x)) <= y <= max(left_line(x),right_line(x)):
                     points.append((x, y))
