@@ -1,4 +1,3 @@
-from ast import Lambda
 from typing import List
 import cv2
 from cv2 import mean
@@ -11,9 +10,8 @@ from Utils.Preprocess import general, get_data_from_parallelogram, get_params_fo
 from Utils.Types import Point
 
 
-def get_par_from_RANSAC_line(RANSAC_line_by_y: Lambda, old_y_up: int, par_width: int, par_height: int):
+def get_par_from_RANSAC_line(RANSAC_line_by_y, old_y_up: int, par_width: int, par_height: int):
     mid_btm_x = RANSAC_line_by_y(old_y_up)
-
     new_y_up = old_y_up - par_height
 
     mid_up_x = RANSAC_line_by_y(new_y_up)
@@ -22,60 +20,9 @@ def get_par_from_RANSAC_line(RANSAC_line_by_y: Lambda, old_y_up: int, par_width:
     return new_upper_left, new_bottom_right
 
 
-def par_regression_loop(img_path='images/10.jpg', par_height=120, par_width=120, par_amount=3):
-    img = general(img_path)
-
-    height, width = img.shape
-
-    x_left = 0
-    y_up_left = height - par_height
-    x_right = par_width
-    y_btm_right = height - 70
-    upper_left = x_left, y_up_left
-    bottom_right = x_right, y_btm_right
-    left_pars = [(upper_left, bottom_right, par_height)]
-
-    x_left = width - 200
-    y_up_left = height - 140 - par_height
-    x_right = width
-    y_btm_right = height
-    upper_left = x_left, y_up_left
-    bottom_right = x_right, y_btm_right
-    right_pars = [(upper_left, bottom_right, par_height)]
-
-    for i in range(par_amount):
-        upper_left, bottom_right = right_pars[-1]
-        x_left, y_up_left = upper_left
-
-        points = get_data_from_parallelogram(
-            img, (upper_left, bottom_right, par_height))
-        m, x_on_reg_line, y_on_reg_line = line_params_from_RANSAC(points)
-
-        upper_left, bottom_right = get_par_from_RANSAC_line(
-            m, x_on_reg_line, y_on_reg_line, par_width, par_height, x_left)
-        right_pars.append((upper_left, bottom_right, par_height))
-
-        upper_left, bottom_right, par_height = left_pars[-1]
-        x_left, y_up_left = upper_left
-
-        points = get_data_from_parallelogram(
-            img, (upper_left, bottom_right, par_height))
-        m, x_on_reg_line, y_on_reg_line = line_params_from_RANSAC(points)
-        upper_left, bottom_right = get_par_from_RANSAC_line(m, x_on_reg_line, y_on_reg_line, par_width, par_height,
-                                                            x_left)
-        left_pars.append((upper_left, bottom_right, par_height))
-
-    for par in right_pars:
-
-        draw_parallelogram(img, par)
-
-    for par in left_pars:
-        draw_parallelogram(img, par)
-
-
 def get_init_data(img: np.ndarray):
     height, width = img.shape
-    par_height = 200
+    par_height = 150
 
     m = -1.28
     n_1 = 650
@@ -91,13 +38,11 @@ def get_init_data(img: np.ndarray):
     bottom_right = (int(x_2(799)), 799)
     bottom_left = (0, int(y_1(0)))
 
-
-
     left_points = points_from_left(img, height, par_height, y_1, x_2, y_2)
 
-    cv2.line(img, upper_left, upper_right, 255, 1)
-    cv2.line(img, upper_left, bottom_left, 255, 1)
-    cv2.line(img, upper_right, bottom_right, 255, 1)
+    # cv2.line(img, upper_left, upper_right, 255, 1)
+    # cv2.line(img, upper_left, bottom_left, 255, 1)
+    # cv2.line(img, upper_right, bottom_right, 255, 1)
    ####################################################
 
     m = 1.28
@@ -114,15 +59,13 @@ def get_init_data(img: np.ndarray):
     upper_right = (int(x_2(height - par_height)), height - par_height)
     bottom_right = (width, int(y_2(width)))
 
-
-
     right_points = points_from_right(
-    img, height, width, par_height, x_1, y_1, y_2)
+        img, height, width, par_height, x_1, y_1, y_2)
 
     # cv2.line(img, upper_left, upper_right, 255, 1)
     # cv2.line(img, upper_left, bottom_left, 255, 1)
     # cv2.line(img, upper_right, bottom_right, 255, 1)
-    show_image(img)
+    # show_image(img)
 
     return left_points, right_points
 
@@ -183,12 +126,14 @@ def get_pars_from_points(par_width, points, par_height):
 
     new_upper_left, new_bottom_right = get_par_from_RANSAC_line(
         linear_equation_by_y, 600, par_width, new_par_height)
+    
+    new_par = (new_upper_left, new_bottom_right, par_width, new_par_height)
 
-    return (new_upper_left, new_bottom_right, par_width, new_par_height), (linear_equation_by_y(par_height), par_height), ( m, n)
+    return new_par, (linear_equation_by_y(par_height), par_height), (m, n)
 
 
 def calc_pars(img: np.ndarray, first_points,  par_width: int, par_height: int, par_amount=1):
-    first_calc_par, first_estimated_point , line_params = get_pars_from_points(
+    first_calc_par, first_estimated_point, line_params = get_pars_from_points(
         par_width, first_points, par_height)
 
     line_list = [line_params]
@@ -208,21 +153,21 @@ def calc_pars(img: np.ndarray, first_points,  par_width: int, par_height: int, p
             img, (upper_left, bottom_right, par_width))
 
         if len(points) is 0:
-            m,n = line_list[-1]
+            m, n = line_list[-1]
         else:
             m, n = line_params_from_RANSAC(points)
 
-        def linear_equation_by_y(y): return ((y-n) / m)
-
+        def linear_equation_by_y(y): return ((y-n) / m)     
+        
         # draw_line_from_RANSAC(img, linear_equation_by_x)
 
-        estimated_points.append((int(linear_equation_by_y(y_up)), y_up))
 
         new_par_height = int(par_height * 2 / 3)
 
         new_upper_left, new_bottom_right = get_par_from_RANSAC_line(
             linear_equation_by_y, y_up, par_width, new_par_height)
 
+        estimated_points.append((int(linear_equation_by_y(y_up)), y_up))
         par_list.append((new_upper_left, new_bottom_right,
                         par_width, new_par_height))
 
@@ -246,24 +191,8 @@ def draw_line_from_RANSAC(img, linear_equation_by_x):
             max = point
             max_y = y
 
-    cv2.line(img, min, max, 255, 1)
-    show_image(img)
-
-
-def get_point_from_RANSAC(img, current_rectangle):
-    upper_left, bottom_right = current_rectangle
-    x_left, y_left = upper_left
-
-    cropped_img = crop_rectangle(img, current_rectangle)
-
-    m, local_x, local_y = line_params_from_RANSAC(cropped_img)
-
-    global_x = x_left + local_x
-    global_y = y_left + local_y
-    n = global_y - m * global_x
-    new_x = (y_left - n) / m
-
-    return int(new_x), y_left
+    # cv2.line(img, min, max, 255, 1)
+    # show_image(img)
 
 
 def line_params_from_RANSAC(points):
@@ -285,7 +214,7 @@ def line_params_from_RANSAC(points):
     x_1 = np.asscalar(line_x[1])
 
     m, n = get_params_for_linear_equation((x_1, y_1), (x_0, y_0))
-
+    
     return m, n
 
 
@@ -337,39 +266,4 @@ def points_close_to_mean(points: List[Point], threshold=30) -> bool:
     return close_percent > 0.8
 
 
-# deprecated
-def rac_regression_loop(img_path='images/10.jpg', rectangle_height=150, rectangle_width=250, rec_amount=4):
 
-    img = general(img_path)
-
-    height, width = img.shape
-
-    right_rec_list = [((width - rectangle_width, height -
-                       rectangle_height), (width - 1, height - 1))]
-    left_rec_list = [((0, height - rectangle_height),
-                      (rectangle_width, height - 1))]
-
-    for i in range(rec_amount):
-        if i >= 1:
-            rectangle_height /= 1.5
-            rectangle_width /= 1.5
-
-        left_rec = left_rec_list[-1]
-        point = get_point_from_RANSAC(img, left_rec)
-        left_rec = get_rectangle_from_mid_bottom(
-            point, rectangle_width, rectangle_height, width)
-        left_rec_list.append(left_rec)
-
-        right_rec = right_rec_list[-1]
-        point = get_point_from_RANSAC(img, right_rec)
-        right_rec = get_rectangle_from_mid_bottom(
-            point, rectangle_width, rectangle_height, width)
-        right_rec_list.append(right_rec)
-
-    for rec in right_rec_list:
-        draw_rectangle(img, rec)
-
-    for rec in left_rec_list:
-        draw_rectangle(img, rec)
-
-    show_image(img)
