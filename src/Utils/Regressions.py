@@ -245,8 +245,6 @@ def plot_RANSAC(points):
         linewidth=2,
         label="RANSAC regressor",
     )
-    print(len(X[inliner_mask]))
-    print(len(X[outliner_mask]))
     plt.legend(loc="lower right")
     plt.xlabel("Input")
     plt.ylabel("Response")
