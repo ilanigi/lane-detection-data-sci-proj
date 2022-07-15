@@ -14,7 +14,7 @@ def get_point_from_RANSAC(img, current_rectangle):
     return int(new_x), y_left
 
 # deprecated
-def rac_regression_loop(img_path='images/10.jpg', rectangle_height=150, rectangle_width=250, rec_amount=4):
+def rac_regression_loop(img_path='images/10.jpg', rectangle_height=150, rectangle_width=250, rec_amount=3):
 
     img = general(img_path)
 
