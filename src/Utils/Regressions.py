@@ -78,27 +78,51 @@ def get_init_data(img: np.ndarray):
     par_height = 200
 
     m = -1.28
-    n_1 = 700
+    n_1 = 650
     n_2 = 900
 
     def y_1(x): return m * x + n_1
     def x_2(y): return (y - n_2) / m
     def y_2(x): return m * x + n_2
+    def x_1(y): return (y - n_1) / m
+
+    upper_left = (int(x_1(height - par_height)), height - par_height)
+    upper_right = (int(x_2(height - par_height)), height - par_height)
+    bottom_right = (int(x_2(799)), 799)
+    bottom_left = (0, int(y_1(0)))
+
+
 
     left_points = points_from_left(img, height, par_height, y_1, x_2, y_2)
 
-   #####################################################
+    cv2.line(img, upper_left, upper_right, 255, 1)
+    cv2.line(img, upper_left, bottom_left, 255, 1)
+    cv2.line(img, upper_right, bottom_right, 255, 1)
+   ####################################################
 
     m = 1.28
     n_1 = -700
-    n_2 = -900
+    n_2 = -950
 
     def x_1(y): return (y - n_1) / m
+    def x_2(y): return (y - n_2) / m
     def y_1(x): return m * x + n_1
     def y_2(x): return m * x + n_2
 
+    upper_left = (int(x_1(height - par_height)), height - par_height)
+    bottom_left = (int(x_1(799)), 799)
+    upper_right = (int(x_2(height - par_height)), height - par_height)
+    bottom_right = (width, int(y_2(width)))
+
+
+
     right_points = points_from_right(
-        img, height, width, par_height, x_1, y_1, y_2)
+    img, height, width, par_height, x_1, y_1, y_2)
+
+    # cv2.line(img, upper_left, upper_right, 255, 1)
+    # cv2.line(img, upper_left, bottom_left, 255, 1)
+    # cv2.line(img, upper_right, bottom_right, 255, 1)
+    show_image(img)
 
     return left_points, right_points
 
@@ -160,13 +184,14 @@ def get_pars_from_points(par_width, points, par_height):
     new_upper_left, new_bottom_right = get_par_from_RANSAC_line(
         linear_equation_by_y, 600, par_width, new_par_height)
 
-    return (new_upper_left, new_bottom_right, par_width, new_par_height), (linear_equation_by_y(par_height), par_height)
+    return (new_upper_left, new_bottom_right, par_width, new_par_height), (linear_equation_by_y(par_height), par_height), ( m, n)
 
 
 def calc_pars(img: np.ndarray, first_points,  par_width: int, par_height: int, par_amount=1):
-    first_calc_par, first_estimated_point = get_pars_from_points(
-        par_width, img, first_points, par_height)
+    first_calc_par, first_estimated_point , line_params = get_pars_from_points(
+        par_width, first_points, par_height)
 
+    line_list = [line_params]
     par_list = [first_calc_par]
     estimated_points = [first_estimated_point]
     for i in range(par_amount):
@@ -182,7 +207,10 @@ def calc_pars(img: np.ndarray, first_points,  par_width: int, par_height: int, p
         points = get_data_from_parallelogram(
             img, (upper_left, bottom_right, par_width))
 
-        m, n = line_params_from_RANSAC(points)
+        if len(points) is 0:
+            m,n = line_list[-1]
+        else:
+            m, n = line_params_from_RANSAC(points)
 
         def linear_equation_by_y(y): return ((y-n) / m)
 
@@ -239,7 +267,7 @@ def get_point_from_RANSAC(img, current_rectangle):
 
 
 def line_params_from_RANSAC(points):
-    # plot_RANSAC(points)
+    plot_RANSAC(points)
     x, y = zip(*points)
 
     y = np.asarray(y)
