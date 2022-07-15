@@ -18,6 +18,15 @@ def get_par_from_RANSAC_line(RANSAC_line_by_y, old_y_up: int, par_width: int, pa
     new_upper_left = int(mid_up_x - 0.5 * par_width), new_y_up
     return new_upper_left, new_bottom_right
 
+def get_points_from_shape(img: np.ndarray, min_y,max_y,min_x,max_x , max_line, min_line) -> List[Point]:
+    points = []
+    for y in range(min_y, max_y):
+        for x in range(min_x,max_x ):
+            if img[y, x] == 0:
+                continue
+            elif min_line(x) <= y <= max_line(x):
+                points.append((x, y))
+    return points
 
 def get_init_data(img: np.ndarray, par_height: int):
     height, width = img.shape
@@ -35,8 +44,8 @@ def get_init_data(img: np.ndarray, par_height: int):
     upper_right = (int(x_2(height - par_height)), height - par_height)
     bottom_right = (int(x_2(799)), 799)
     bottom_left = (0, int(y_1(0)))
-
-    left_points = points_from_left(img, height, par_height, y_1, x_2, y_2)
+   
+    left_points = get_points_from_shape(img, height - par_height, height, 0, int(x_2(height - par_height)),y_2,y_1)
 
     cv2.line(img, upper_left, upper_right, 255, 1)
     cv2.line(img, upper_left, bottom_left, 255, 1)
@@ -57,40 +66,19 @@ def get_init_data(img: np.ndarray, par_height: int):
     upper_right = (int(x_2(height - par_height)), height - par_height)
     bottom_right = (width, int(y_2(width)))
 
-    right_points = points_from_right(
-        img, height, width, par_height, x_1, y_1, y_2)
+    right_points = get_points_from_shape(
+        img, height - par_height, height, int(x_1(height - par_height)),width,y_1,y_2)
 
     cv2.line(img, upper_left, upper_right, 255, 1)
     cv2.line(img, upper_left, bottom_left, 255, 1)
     cv2.line(img, upper_right, bottom_right, 255, 1)
-    # show_image(img)
+   
 
     return left_points, right_points
 
 
-def points_from_left(img: np.ndarray, img_height: int, par_height: int, y_1: int, x_2: int, y_2: int) -> List[Point]:
-    left_points = []
-    for y in range(img_height - par_height, img_height):
-        for x in range(int(x_2(img_height - par_height))):
-            if img[y, x] == 0:
-                continue
-            elif y_1(x) <= y <= y_2(x):
-                left_points.append((x, y))
-    return left_points
 
-
-def points_from_right(img: np.ndarray, img_height: int, img_width: int, par_height: int, x_1: int, y_1: int, y_2: int) -> List[Point]:
-    points = []
-    for y in range(img_height - par_height, img_height):
-        for x in range(int(x_1(img_height - par_height)), img_width):
-            if img[y, x] == 0:
-                continue
-            elif y_2(x) <= y <= y_1(x):
-                points.append((x, y))
-    return points
-
-
-def main_par_regression_loop(img_path='images/142.jpg', par_height=300, par_width=100):
+def main_par_regression_loop(img_path='images/10.jpg', par_height=300, par_width=100):
 
     img = general(img_path, min_neighbors_amount_list=[2, 1])
 
