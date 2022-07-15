@@ -80,3 +80,24 @@ def plot_data(points: List[Point]):
     ax.set_ylim(ax.get_ylim()[::-1])
     ax.xaxis.tick_top()  # and move the X-Axis
     plt.show()
+
+def draw_line_from_RANSAC(img, linear_equation_by_x):
+    xy = [(i, int(linear_equation_by_x(i)))
+          for i in range(600) if 0 < int(linear_equation_by_x(i)) < 800]
+
+    max: tuple
+    min: tuple
+    min_y = 9999
+    max_y = -1
+    for point in xy:
+        x, y = point
+        if y < min_y:
+            min = point
+            min_y = y
+        if y > max_y:
+            max = point
+            max_y = y
+
+    cv2.line(img, min, max, 255, 1)
+    show_image(img)
+
