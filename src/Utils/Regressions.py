@@ -1,11 +1,10 @@
 from typing import List
 import cv2
-from cv2 import mean
 import numpy as np
 from matplotlib import pyplot as plt
 
 from sklearn import linear_model
-from Utils.Plot import draw_parallelogram, get_rectangle_from_mid_bottom,  show_image
+from Utils.Plot import draw_parallelogram, show_image
 from Utils.Preprocess import general, get_data_from_parallelogram, get_params_for_linear_equation
 from Utils.Types import Point
 
@@ -20,9 +19,9 @@ def get_par_from_RANSAC_line(RANSAC_line_by_y, old_y_up: int, par_width: int, pa
     return new_upper_left, new_bottom_right
 
 
-def get_init_data(img: np.ndarray):
+def get_init_data(img: np.ndarray,par_height:int):
     height, width = img.shape
-    par_height = 150
+    
 
     m = -1.28
     n_1 = 650
@@ -40,9 +39,9 @@ def get_init_data(img: np.ndarray):
 
     left_points = points_from_left(img, height, par_height, y_1, x_2, y_2)
 
-    # cv2.line(img, upper_left, upper_right, 255, 1)
-    # cv2.line(img, upper_left, bottom_left, 255, 1)
-    # cv2.line(img, upper_right, bottom_right, 255, 1)
+    cv2.line(img, upper_left, upper_right, 255, 1)
+    cv2.line(img, upper_left, bottom_left, 255, 1)
+    cv2.line(img, upper_right, bottom_right, 255, 1)
    ####################################################
 
     m = 1.28
@@ -62,15 +61,15 @@ def get_init_data(img: np.ndarray):
     right_points = points_from_right(
         img, height, width, par_height, x_1, y_1, y_2)
 
-    # cv2.line(img, upper_left, upper_right, 255, 1)
-    # cv2.line(img, upper_left, bottom_left, 255, 1)
-    # cv2.line(img, upper_right, bottom_right, 255, 1)
-    # show_image(img)
+    cv2.line(img, upper_left, upper_right, 255, 1)
+    cv2.line(img, upper_left, bottom_left, 255, 1)
+    cv2.line(img, upper_right, bottom_right, 255, 1)
+    show_image(img)
 
     return left_points, right_points
 
 
-def points_from_left(img: np.ndarray, img_height: int, par_height: int, y_1: int, x_2: int, y_2: int):
+def points_from_left(img: np.ndarray, img_height: int, par_height: int, y_1: int, x_2: int, y_2: int)->List[Point]:
     left_points = []
     for y in range(img_height - par_height, img_height):
         for x in range(int(x_2(img_height - par_height))):
@@ -81,7 +80,7 @@ def points_from_left(img: np.ndarray, img_height: int, par_height: int, y_1: int
     return left_points
 
 
-def points_from_right(img: np.ndarray, img_height: int, img_width: int, par_height: int, x_1: int, y_1: int, y_2: int):
+def points_from_right(img: np.ndarray, img_height: int, img_width: int, par_height: int, x_1: int, y_1: int, y_2: int)->List[Point]:
     points = []
     for y in range(img_height - par_height, img_height):
         for x in range(int(x_1(img_height - par_height)), img_width):
@@ -92,11 +91,11 @@ def points_from_right(img: np.ndarray, img_height: int, img_width: int, par_heig
     return points
 
 
-def main_par_regression_loop(img_path='images/10.jpg', par_height=200, par_width=150):
+def main_par_regression_loop(img_path='images/10.jpg', par_height=300, par_width=100):
 
     img = general(img_path, min_neighbors_amount_list=[2, 1])
 
-    left_points, right_points = get_init_data(img)
+    left_points, right_points = get_init_data(img,par_height)
 
     left_par_list, left_estimated_points = calc_pars(
         img, left_points, par_width, par_height)
@@ -122,24 +121,24 @@ def get_pars_from_points(par_width, points, par_height):
 
     def linear_equation_by_y(y): return ((y-n) / m)
 
-    new_par_height = int(par_height * 2 / 3)
-
     new_upper_left, new_bottom_right = get_par_from_RANSAC_line(
-        linear_equation_by_y, 600, par_width, new_par_height)
+        linear_equation_by_y, 600, par_width, par_height)
     
-    new_par = (new_upper_left, new_bottom_right, par_width, new_par_height)
+    new_par = (new_upper_left, new_bottom_right, par_width, par_height)
 
-    return new_par, (linear_equation_by_y(par_height), par_height), (m, n)
+    return new_par, (int(linear_equation_by_y(par_height)), par_height), (m, n)
 
 
-def calc_pars(img: np.ndarray, first_points,  par_width: int, par_height: int, par_amount=1):
+def calc_pars(img: np.ndarray, first_points,  par_width: int, par_height: int, total_par_amount=3):
+    par_width_delta = 2/3
+    par_height_delta = 4/5
     first_calc_par, first_estimated_point, line_params = get_pars_from_points(
-        par_width, first_points, par_height)
+        int(par_width* par_width_delta), first_points, int(par_height * par_height_delta))
 
     line_list = [line_params]
     par_list = [first_calc_par]
     estimated_points = [first_estimated_point]
-    for i in range(par_amount):
+    for i in range(total_par_amount -1):
 
         old_par = par_list[-1]
 
@@ -153,23 +152,22 @@ def calc_pars(img: np.ndarray, first_points,  par_width: int, par_height: int, p
             img, (upper_left, bottom_right, par_width))
 
         if len(points) is 0:
+            print('len(points) is 0:')
             m, n = line_list[-1]
         else:
             m, n = line_params_from_RANSAC(points)
 
         def linear_equation_by_y(y): return ((y-n) / m)     
         
-        # draw_line_from_RANSAC(img, linear_equation_by_x)
-
-
-        new_par_height = int(par_height * 2 / 3)
+        new_par_width = int(par_height * par_width_delta)
+        new_par_height = int(par_width * par_height_delta)
 
         new_upper_left, new_bottom_right = get_par_from_RANSAC_line(
-            linear_equation_by_y, y_up, par_width, new_par_height)
+            linear_equation_by_y, y_up, new_par_width, new_par_height)
 
         estimated_points.append((int(linear_equation_by_y(y_up)), y_up))
         par_list.append((new_upper_left, new_bottom_right,
-                        par_width, new_par_height))
+                        new_par_width, new_par_height))
 
     return par_list, estimated_points
 
