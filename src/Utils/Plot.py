@@ -28,12 +28,13 @@ def draw_parallelogram(img:np.ndarray, par:Parallelogram):
     for coordinate in [x_up_left, x_up_right, x_btm_right, x_btm_left]:
         if coordinate is width or coordinate < 0:
             print ('coordinate is width:' + str(coordinate is width )+ ' width or coordinate < 0:' + str(width or coordinate < 0))
-            raise Exception("parallelogram  out of bound")
+            return 
+
 
     for coordinate in [y_up, y_btm]:
         if coordinate is height or coordinate < 0:
             print('coordinate is height:' + str(coordinate is height)+'height or coordinate < 0:' + str(height or coordinate < 0))
-            raise Exception("parallelogram out of bound")
+            return 
 
     cv2.line(img, upper_left, (x_up_right, y_up), 255, 1)
     cv2.line(img, upper_left, (x_btm_left, y_btm), 255, 1)
